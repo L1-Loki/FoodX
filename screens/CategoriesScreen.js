@@ -1,55 +1,74 @@
-import React from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import React, { useLayoutEffect } from "react";
+import { FlatList, StyleSheet } from "react-native";
+import CategoryGridTile from "./CategoryGridTile"; // Import your CategoryGridTile component
 
 const CATEGORIES = [
-  { id: "1", title: "Italian", color: "#f54242" },
-  { id: "2", title: "Quick & Easy", color: "#f5428d" },
-  // Thêm các danh mục khác...
+  {
+    id: "1",
+    title: "Italian",
+    image: require("../assets/cupcakes.jpg"),
+  },
+  {
+    id: "2",
+    title: "Quick & Easy",
+    image: require("../assets/pizza.jpg"),
+  },
+  {
+    id: "3",
+    title: "Breakfast",
+    image: require("../assets/fried-egg.jpg"),
+  },
+  {
+    id: "4",
+    title: "Dessert",
+    image: require("../assets/salad.jpg"),
+  },
+  {
+    id: "5",
+    title: "Vegan",
+    image: require("../assets/banh_dau.jpg"),
+  },
+  {
+    id: "6",
+    title: "Gluten-Free",
+    image: require("../assets/hamburger.jpg"),
+  },
+  // Add more categories if needed
 ];
 
-const CategoryGridTile = ({ title, color, onSelect }) => {
-  return (
-    <TouchableOpacity
-      style={[styles.gridItem, { backgroundColor: color }]}
-      onPress={onSelect}
-    >
-      <View>
-        <Text>{title}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
 const CategoriesScreen = ({ navigation }) => {
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "Categories",
+    });
+  }, [navigation]);
+
   const renderGridItem = (itemData) => {
     return (
-      <CategoryGridTile
+      <CategoryGridTile 
         title={itemData.item.title}
-        color={itemData.item.color}
+        image={itemData.item.image} 
         onSelect={() => {
-          navigation.navigate("Meals", { categoryId: itemData.item.id });
+          navigation.navigate("Meals", {
+            categoryId: itemData.item.id,
+          });
         }}
       />
     );
   };
 
   return (
-    <FlatList data={CATEGORIES} renderItem={renderGridItem} numColumns={2} />
+    <FlatList
+      data={CATEGORIES}
+      renderItem={renderGridItem}
+      numColumns={2}
+      keyExtractor={(item) => item.id}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  gridItem: {
-    flex: 1,
-    margin: 15,
-    height: 150,
-  },
+  // You can add additional styles here if needed
 });
 
 export default CategoriesScreen;
