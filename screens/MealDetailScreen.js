@@ -1,8 +1,7 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, Button } from "react-native";
+import { FlatList, View, Text, Image, StyleSheet } from "react-native";
 
-// Giả định chúng ta đang sử dụng danh sách món ăn từ MEALS
-const MEALS = [
+const meals = [
   {
     id: "1",
     title: "Mixed Salad Bowl",
@@ -54,10 +53,10 @@ const MEALS = [
 ];
 
 const MealDetailScreen = ({ route, navigation }) => {
-  const { mealId } = route.params; // Lấy mealId được truyền từ MealsScreen
+  const { mealId } = route.params; // Lấy mealId truyền MealsScreen
 
-  // Tìm kiếm món ăn theo mealId
-  const selectedMeal = MEALS.find((meal) => meal.id === mealId);
+  // Tìm kiếm
+  const selectedMeal = meals.find((meal) => meal.id === mealId);
 
   return (
     <View style={styles.screen}>
@@ -67,6 +66,14 @@ const MealDetailScreen = ({ route, navigation }) => {
         {selectedMeal.items} items | {selectedMeal.distance}
       </Text>
       <Text style={styles.price}>Price: ${selectedMeal.price.toFixed(2)}</Text>
+
+      {/* <FlatList
+        data={selectedMeal.ingredients} // Giả sử có mảng ingredients trong selectedMeal
+        keyExtractor={(item, index) => index.toString()} // Tạo key cho từng mục
+        renderItem={renderIngredientItem} // Hàm để hiển thị từng item
+        style={styles.ingredientList}
+        contentContainerStyle={styles.ingredientListContainer} // Để tùy chỉnh layout
+      /> */}
     </View>
   );
 };
@@ -101,6 +108,18 @@ const styles = StyleSheet.create({
     color: "green",
     fontWeight: "bold",
     marginVertical: 10,
+  },
+  ingredientListContainer: {
+    paddingBottom: 16,
+  },
+  ingredientItem: {
+    backgroundColor: "#f5f5f5",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 5,
+  },
+  ingredientList: {
+    marginTop: 16,
   },
 });
 

@@ -40,7 +40,7 @@ const HomeScreen = ({ navigation }) => {
         <Image
           source={{
             uri: "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
-          }} // Replace with your avatar image URL or asset
+          }}
           style={styles.avatar}
         />
         <View style={styles.headerTextContainer}>
@@ -72,7 +72,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <View style={styles.offerCard}>
         <Image
-          source={require("../assets/hamburger.jpg")} // Replace with the burger image from your assets
+          source={require("../assets/hamburger.jpg")} 
           style={styles.offerImage}
         />
         <View style={styles.offerTextContainer}>
@@ -86,19 +86,17 @@ const HomeScreen = ({ navigation }) => {
         data={CATEGORIES}
         renderItem={renderCategoryItem}
         keyExtractor={(item) => item.id}
-        numColumns={4} // Adjust to show categories in rows of 4
+        numColumns={4} 
         contentContainerStyle={styles.categoriesContainer}
-        scrollEnabled={false} // Prevent nested scroll issues
+        scrollEnabled={false} 
       />
 
-      {/* Discount Guaranteed Section */}
       <View style={styles.specialOffersContainer}>
         <Text style={styles.sectionTitle}>Discount Guaranteed!</Text>
         <TouchableOpacity>
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
-      {/* Add more content here as needed */}
     </ScrollView>
   );
 };
@@ -141,7 +139,8 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     justifyContent: "center",
-    marginRight: 150,
+    marginLeft: 20,
+    flex: 1,
   },
   searchContainer: {
     flexDirection: "row",

@@ -10,7 +10,7 @@ const CATEGORIES = [
   },
   {
     id: "2",
-    title: "Quick & Easy",
+    title: "Quick Easy",
     image: require("../assets/pizza.jpg"),
   },
   {
@@ -30,7 +30,7 @@ const CATEGORIES = [
   },
   {
     id: "6",
-    title: "Gluten-Free",
+    title: "Gluten Free",
     image: require("../assets/hamburger.jpg"),
   },
   // Add more categories if needed

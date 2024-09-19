@@ -1,104 +1,74 @@
-import React from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig'; // Đảm bảo đường dẫn chính xác
 
-// Giả định dữ liệu mẫu cho các món ăn
-const MEALS = [
-  {
-    id: "1",
-    title: "Mixed Salad Bowl",
-    image: require("../assets/salad.jpg"), // Hình ảnh của món ăn
-    items: 3,
-    distance: "1.5 km",
-    price: 18.0,
-  },
-  {
-    id: "2",
-    title: "Mixed Salad Bowl",
-    image: require("../assets/banh_dau.jpg"), // Hình ảnh của món ăn
-    items: 3,
-    distance: "1.5 km",
-    price: 8.0,
-  },
-  {
-    id: "3",
-    title: "Mixed Salad Bowl",
-    image: require("../assets/hamburger.jpg"), // Hình ảnh của món ăn
-    items: 3,
-    distance: "1.5 km",
-    price: 10.0,
-  },
-  {
-    id: "4",
-    title: "Mixed Salad Bowl",
-    image: require("../assets/fried-egg.jpg"), // Hình ảnh của món ăn
-    items: 3,
-    distance: "1.5 km",
-    price: 5.0,
-  },
-  {
-    id: "5",
-    title: "Dessert Cake",
-    image: require("../assets/pizza.jpg"),
-    items: 4,
-    distance: "2.3 km",
-    price: 22.0,
-  },
-  {
-    id: "6",
-    title: "Dessert Cake",
-    image: require("../assets/cupcakes.jpg"),
-    items: 4,
-    distance: "2.3 km",
-    price: 22.0,
-  },
-];
+const MealsScreen = ({ navigation }) => {
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const MealItem = ({ title, image, items, distance, price, onSelect }) => {
-  return (
-    <TouchableOpacity style={styles.mealItem} onPress={onSelect}>
-      <View style={styles.mealInfo}>
-        <Image source={image} style={styles.mealImage} />
-        <View style={styles.mealDetails}>
-          <Text style={styles.mealTitle}>{title}</Text>
-          <Text style={styles.mealMeta}>
-            {items} items | {distance}
-          </Text>
-          <Text style={styles.mealPrice}>${price.toFixed(2)}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        console.log('Fetching meals...');
+        const mealCollection = collection(db, 'meals');
+        const mealSnapshot = await getDocs(mealCollection);
+        
+        console.log('Meal snapshot:', mealSnapshot);
+        console.log('Meal snapshot empty:', mealSnapshot.empty);
 
-const MealsScreen = ({ route, navigation }) => {
-  const { categoryId } = route.params;
+        if (mealSnapshot.empty) {
+          console.log('No meals found.');
+          setMeals([]);
+          return;
+        }
 
-  const renderMealItem = (itemData) => {
+        const mealList = mealSnapshot.docs.map(doc => {
+          console.log('Document data:', doc.data());
+          return { id: doc.id, ...doc.data() };
+        });
+        console.log('Fetched meals:', mealList);
+
+        setMeals(mealList);
+      } catch (error) {
+        console.error("Error fetching meals: ", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMeals();
+  }, []);
+
+  if (loading) {
     return (
-      <MealItem
-        title={itemData.item.title}
-        image={itemData.item.image}
-        items={itemData.item.items}
-        distance={itemData.item.distance}
-        price={itemData.item.price}
-        onSelect={() => {
-          navigation.navigate("MealDetail", { mealId: itemData.item.id });
-        }}
-      />
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
     );
-  };
+  }
+
+  if (error) {
+    return <Text>Error: {error}</Text>;
+  }
+
+  const renderMealItem = ({ item }) => (
+    <MealItem
+      title={item.title}
+      image={item.image}
+      items={item.items}
+      distance={item.distance}
+      price={item.price}
+      onSelect={() => navigation.navigate('MealDetail', { mealId: item.id })}
+    />
+  );
 
   return (
     <View style={styles.screen}>
       <FlatList
-        data={MEALS}
+        data={meals}
         renderItem={renderMealItem}
         keyExtractor={(item) => item.id}
       />
@@ -106,25 +76,38 @@ const MealsScreen = ({ route, navigation }) => {
   );
 };
 
+const MealItem = ({ title, image, items, distance, price, onSelect }) => (
+  <TouchableOpacity style={styles.mealItem} onPress={onSelect}>
+    <View style={styles.mealInfo}>
+      <Image source={{ uri: image }} style={styles.mealImage} />
+      <View style={styles.mealDetails}>
+        <Text style={styles.mealTitle}>{title}</Text>
+        <Text style={styles.mealMeta}>{items} items | {distance}</Text>
+        <Text style={styles.mealPrice}>${price}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     padding: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#f9f9f9',
   },
   mealItem: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 10,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginVertical: 10,
     elevation: 3,
-    shadowColor: "black",
+    shadowColor: 'black',
     shadowOpacity: 0.25,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
   },
   mealInfo: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 10,
   },
   mealImage: {
@@ -138,17 +121,27 @@ const styles = StyleSheet.create({
   },
   mealTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   mealMeta: {
-    color: "#888",
+    color: '#888',
     fontSize: 12,
   },
   mealPrice: {
-    color: "green",
-    fontWeight: "bold",
+    color: 'green',
+    fontWeight: 'bold',
     marginTop: 5,
     fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#888',
   },
 });
 
