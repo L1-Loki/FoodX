@@ -1,12 +1,15 @@
 import React from "react";
-
 import { NavigationContainer } from "@react-navigation/native";
-import DrawerNavigator from "./navigators/DrawerNavigator";
+import { AuthProvider } from "./screens/screen_user/AuthContext";
+import AppNavigator from "./navigators/AppNavigator";
+import SignInWithPhone from "./screens/screen_user/SignInWithPhone";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <DrawerNavigator />
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
+    </AuthProvider>
   );
 }

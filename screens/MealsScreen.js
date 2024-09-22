@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig'; // Đảm bảo đường dẫn chính xác
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+
 
 const MealsScreen = ({ navigation }) => {
   const [meals, setMeals] = useState([]);

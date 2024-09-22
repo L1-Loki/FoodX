@@ -6,21 +6,26 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
+import { auth } from "../firebaseConfig";
+import { signOut } from "firebase/auth";
 // Dữ liệu mẫu cho danh sách cài đặt
 const settingsData = [
   { id: "1", title: "Chế độ tối sáng" },
   { id: "2", title: "Chuyển sang admin" },
   { id: "3", title: "Cập nhật dữ liệu" },
   { id: "4", title: "Xóa dữ liệu" },
+  { id: "5", title: "Đăng xuất" },
 ];
 
 const SettingsScreen = ({ navigation }) => {
   const handlePress = (setting) => {
-    // Chuyển hướng hoặc thực hiện hành động khi người dùng chọn một mục
     if (setting.id === "2") {
       navigation.navigate("AdminScreenMeal"); // Điều hướng tới màn hình admin
+    } else if (setting.id === "5") {
+      signOut(auth).then(() => {
+        navigation.navigate("SignIn");
+      });
     }
-    // Thực hiện hành động cho các mục khác nếu cần
   };
 
   return (
