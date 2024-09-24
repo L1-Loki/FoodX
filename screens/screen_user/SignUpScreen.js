@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { TextInput, Button, Checkbox } from "react-native-paper";
-import {  fb_auth,  db } from "../../firebaseConfig";
+import { fb_auth, db } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
@@ -34,7 +34,7 @@ export default function SignUpScreen({ navigation }) {
       });
 
       alert("Đăng ký thành công!");
-      navigation.navigate("Home"); 
+      navigation.navigate("Home");
     } catch (error) {
       console.error("Error during sign up:", error.message);
       alert(error.message);
@@ -43,10 +43,10 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tạo tài khoản mới</Text>
+      <Text style={styles.title}>Create a new account</Text>
 
       <TextInput
-        label="Số điện thoại"
+        label="Phone number"
         mode="outlined"
         style={styles.input}
         value={phoneNumber}
@@ -62,14 +62,14 @@ export default function SignUpScreen({ navigation }) {
         keyboardType="email-address"
       />
       <TextInput
-        label="Họ và tên"
+        label="Name"
         mode="outlined"
         style={styles.input}
         value={fullName}
         onChangeText={setFullName}
       />
       <TextInput
-        label="Mật khẩu"
+        label="Password"
         mode="outlined"
         style={styles.input}
         value={password}
@@ -82,7 +82,7 @@ export default function SignUpScreen({ navigation }) {
           status={rememberMe ? "checked" : "unchecked"}
           onPress={() => setRememberMe(!rememberMe)}
         />
-        <Text>Ghi nhớ đăng nhập</Text>
+        <Text>Remember </Text>
       </View>
 
       <Button
@@ -90,13 +90,13 @@ export default function SignUpScreen({ navigation }) {
         style={styles.signUpButton}
         onPress={handleSignUp} // Thay đổi sự kiện khi nhấn nút để đăng ký
       >
-        Đăng ký
+        Register
       </Button>
 
       <View style={styles.footer}>
-        <Text>Bạn đã có tài khoản? </Text>
+        <Text>Already have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
-          <Text style={styles.signInText}>Đăng nhập</Text>
+          <Text style={styles.signInText}>Login</Text>
         </TouchableOpacity>
       </View>
     </View>

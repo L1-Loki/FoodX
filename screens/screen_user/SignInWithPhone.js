@@ -7,12 +7,13 @@ import Icon from "react-native-vector-icons/FontAwesome"; // Thay thế tên ico
 export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isRememberMe, setIsRememberMe] = useState(false);
+  const phoneInput = React.useRef(null);
 
   return (
     <View style={styles.container}>
       {/* Icon */}
       <View style={styles.iconContainer}>
-        <Icon name="user" size={60} color="#28a745" />
+        <Icon name="user" size={60} color="#00c853" />
       </View>
 
       {/* Title */}
@@ -20,6 +21,7 @@ export default function LoginScreen({ navigation }) {
 
       {/* Phone Input */}
       <PhoneInput
+        ref={phoneInput}
         defaultValue={phoneNumber}
         defaultCode="US"
         layout="first"
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   signInButton: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#00c853",
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -139,6 +141,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   signUpText: {
-    color: "#28a745",
+    color: "#00c853",
   },
 });

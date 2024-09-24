@@ -2,21 +2,23 @@ import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAuth } from "../screens/screen_user/AuthContext";
-import DrawerNavigator from "./DrawerNavigator"; // Đảm bảo đường dẫn đúng
+
+import DrawerNavigator from "./DrawerNavigator";
 import SignUpScreen from "../screens/screen_user/SignUpScreen";
 import SignInScreen from "../screens/screen_user/SignInScreen";
 import SignInWithPhone from "../screens/screen_user/SignInWithPhone";
 import OTPScreen from "../screens/screen_user/OtpVerificationScreen";
+import ForgetPass from "../screens/screen_user/ForgetPass";
 
 const Stack = createStackNavigator();
 
-const AppNavigator = () => {    
+const AppNavigator = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#00c853" />
       </View>
     );
   }
@@ -51,7 +53,11 @@ const AppNavigator = () => {
             component={SignInWithPhone}
             options={{ headerShown: false }}
           />
-        
+          <Stack.Screen
+            name="ForgetPass"
+            component={ForgetPass}
+            options={{ headerShown: false }}
+          />
         </>
       )}
     </Stack.Navigator>

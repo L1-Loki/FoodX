@@ -11,7 +11,7 @@ import { signOut } from "firebase/auth";
 // Dữ liệu mẫu cho danh sách cài đặt
 const settingsData = [
   { id: "1", title: "Chế độ tối sáng" },
-  { id: "2", title: "Chuyển sang admin" },
+  // { id: "2", title: "Chuyển sang admin" },
   { id: "3", title: "Cập nhật dữ liệu" },
   { id: "4", title: "Xóa dữ liệu" },
   { id: "5", title: "Đăng xuất" },
