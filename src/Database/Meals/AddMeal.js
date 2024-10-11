@@ -7,11 +7,18 @@ import {
   TouchableOpacity,
   Image,
   Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
+import { getDistance } from "geolib";
+import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth } from "../../../firebaseConfig"; // Import Firebase Auth
+import { auth } from "../../../firebaseConfig";
 import { db, storage } from "../../../firebaseConfig";
 
 const AddMeal = ({ navigation }) => {
@@ -21,21 +28,23 @@ const AddMeal = ({ navigation }) => {
     image: null,
     items: "",
     price: "",
+    location: null,
   });
-  const [fullName, setFullName] = useState("Anonymous"); // Để lưu tên người dùng
+  const [fullName, setFullName] = useState("Anonymous");
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [meals, setMeals] = useState([]);
 
   const currentUser = auth.currentUser;
 
   useEffect(() => {
-    // Lấy fullName của người dùng từ Firestore
     const fetchUserFullName = async () => {
       if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid); // Giả sử email là document ID
+        const userRef = doc(db, "users", currentUser.uid);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          setFullName(userData.fullName || "Anonymous"); // Lấy tên đầy đủ hoặc đặt tên mặc định
+          setFullName(userData.fullName || "Anonymous");
         } else {
           console.log("User document not found");
         }
@@ -43,7 +52,19 @@ const AddMeal = ({ navigation }) => {
     };
 
     fetchUserFullName();
+    fetchMeals();
+    getCurrentLocation(); // Lấy vị trí hiện tại ngay khi tải
   }, [currentUser]);
+
+  const fetchMeals = async () => {
+    const mealsCollection = collection(db, "meals");
+    const mealsSnapshot = await getDocs(mealsCollection);
+    const mealsList = mealsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setMeals(mealsList);
+  };
 
   const handleChange = (name, value) => {
     setMeal((prev) => ({ ...prev, [name]: value }));
@@ -66,13 +87,27 @@ const AddMeal = ({ navigation }) => {
     });
 
     if (!pickerResult.canceled) {
-      setMeal((prev) => ({ ...prev, image: pickerResult.assets[0] })); // Cập nhật ảnh
+      setMeal((prev) => ({ ...prev, image: pickerResult.assets[0] }));
+    }
+  };
+
+  const handleOpenMap = async () => {
+    if (meal.location) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${meal.location.latitude},${meal.location.longitude}`;
+      await Linking.openURL(url);
+    } else {
+      Alert.alert("Location is not available");
     }
   };
 
   const handleAddMeal = async () => {
+    if (!meal.title || !meal.distance || !meal.items || !meal.price) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
     try {
-      let imageUrl = "adaptive-icon.png"; // Hình ảnh mặc định nếu không có hình
+      let imageUrl = "adaptive-icon.png";
       if (meal.image) {
         const response = await fetch(meal.image.uri);
         const blob = await response.blob();
@@ -83,106 +118,215 @@ const AddMeal = ({ navigation }) => {
 
       const mealData = {
         title: meal.title,
-        distance: meal.distance,
+        distance: meal.distance + " km",
         image: imageUrl,
         items: Number(meal.items),
         price: Number(meal.price),
-        fullName: fullName, // Thêm thông tin fullName của người dùng
+        fullName: fullName,
+        location: meal.location,
       };
 
       await addDoc(collection(db, "meals"), mealData);
       Alert.alert("Success", "Meal added successfully!");
-      navigation.goBack();
+      setMeal({
+        title: "",
+        distance: "",
+        image: null,
+        items: "",
+        price: "",
+        location: null,
+      });
+      fetchMeals();
     } catch (error) {
       console.error("Error adding meal: ", error);
       Alert.alert("Error", "Failed to add meal!");
     }
   };
 
+  const getCurrentLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission to access location was denied");
+      return;
+    }
+
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      if (location) {
+        setCurrentLocation(location);
+      }
+    } catch (error) {
+      console.error("Error getting location: ", error);
+      Alert.alert("Error", "Failed to get current location!");
+    }
+  };
+
+  const handleMapPress = (e) => {
+    const { coordinate } = e.nativeEvent;
+    setMeal((prev) => ({
+      ...prev,
+      location: {
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+      },
+      distance: calculateDistance(coordinate.latitude, coordinate.longitude), // Tính khoảng cách khi chọn vị trí
+    }));
+  };
+
+  const calculateDistance = (latitude, longitude) => {
+    if (currentLocation) {
+      const distance = getDistance(
+        {
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        },
+        { latitude, longitude }
+      );
+      return (distance / 1000).toFixed(2); // Trả về khoảng cách tính bằng km
+    }
+    return 0;
+  };
+
   return (
-    <View style={styles.container}>
-      {meal.image && (
-        <Image source={{ uri: meal.image.uri }} style={styles.selectedImage} />
-      )}
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={meal.title}
-        onChangeText={(text) => handleChange("title", text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Distance"
-        value={meal.distance}
-        onChangeText={(text) => handleChange("distance", text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Number of Items"
-        value={meal.items}
-        onChangeText={(text) => handleChange("items", text)}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price"
-        value={meal.price}
-        onChangeText={(text) => handleChange("price", text)}
-        keyboardType="numeric"
-      />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.formContainer}>
+          {meal.image && (
+            <Image
+              source={{ uri: meal.image.uri }}
+              style={styles.selectedImage}
+            />
+          )}
+          <TextInput
+            style={styles.input}
+            placeholder="Title"
+            value={meal.title}
+            onChangeText={(text) => handleChange("title", text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Distance (km)"
+            value={meal.distance ? `${meal.distance}` : ""}
+            editable={false}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Number of Items"
+            value={meal.items}
+            onChangeText={(text) => handleChange("items", text)}
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Price"
+            value={meal.price}
+            onChangeText={(text) => handleChange("price", text)}
+            keyboardType="numeric"
+          />
 
-      <TouchableOpacity style={styles.imageButton} onPress={handleImagePicker}>
-        <Text style={styles.buttonText}>Select Image</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.imageButton}
+            onPress={handleImagePicker}
+          >
+            <Text style={styles.buttonText}>Select Image</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.addButton} onPress={handleAddMeal}>
-        <Text style={styles.buttonText}>Add Meal</Text>
-      </TouchableOpacity>
-    </View>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: 10.9821, // Mặc định là latitude của Thủ Dầu Một
+              longitude: 106.6459, // Mặc định là longitude của Thủ Dầu Một
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+            onPress={handleMapPress} // Cập nhật vị trí khi nhấn vào bản đồ
+          >
+            {meal.location && (
+              <Marker
+                coordinate={{
+                  latitude: meal.location.latitude,
+                  longitude: meal.location.longitude,
+                }}
+                title="Selected Location"
+              />
+            )}
+            {currentLocation && (
+              <Marker
+                coordinate={{
+                  latitude: currentLocation.coords.latitude,
+                  longitude: currentLocation.coords.longitude,
+                }}
+                title="Your Location"
+              />
+            )}
+          </MapView>
+
+          <TouchableOpacity style={styles.addButton} onPress={handleAddMeal}>
+            <Text style={styles.buttonText}>Add Meal</Text>
+          </TouchableOpacity>
+
+          {/* <TouchableOpacity style={styles.addButton} onPress={handleOpenMap}>
+            <Text style={styles.buttonText}>Open Map</Text>
+          </TouchableOpacity> */}
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    paddingTop: 70,
     backgroundColor: "#f9f9f9",
+    padding: 20,
   },
-  selectedImage: {
-    width: "100%",
-    height: 200,
-    marginBottom: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  formContainer: {
+    marginBottom: 20,
   },
   input: {
     height: 50,
     borderColor: "#ddd",
     borderWidth: 1,
     borderRadius: 10,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
   imageButton: {
-    backgroundColor: "#00c853",
+    backgroundColor: "#2196F3",
+    alignItems: "center",
     padding: 15,
     borderRadius: 10,
-    alignItems: "center",
+    marginBottom: 10,
+  },
+  selectedImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  map: {
+    width: "100%",
+    height: 300,
+    borderRadius: 10,
     marginBottom: 10,
   },
   addButton: {
-    backgroundColor: "#00c853",
+    backgroundColor: "#4CAF50",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
+    marginVertical: 10,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 18,
   },
 });
 

@@ -4,6 +4,7 @@ import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
 import MealDetail from "../screens/MealDetailScreen";
 import MealsScreen from "../screens/MealsScreen";
+import ReviewForm from "../screens/Vote/ReviewForm";
 import UserEditScreen from "../screens/UserEditScreen";
 
 const Stack = createStackNavigator();
@@ -31,6 +32,7 @@ const HomeStackNavigator = () => (
       component={UserEditScreen}
       options={{ headerShown: false }}
     />
+    <Stack.Screen name="ReviewForm" component={ReviewForm} />
   </Stack.Navigator>
 );
 

@@ -101,7 +101,6 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Search Section */}
       <View style={styles.searchContainer}>
         <FontAwesome name="search" size={20} color="grey" />
         <TextInput

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Modal,
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -30,6 +31,10 @@ const SearchScreen = ({ navigation, route }) => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [favorites, setFavorites] = useState(new Set());
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [priceRange, setPriceRange] = useState("all");
+  const [ratingRange, setRatingRange] = useState("all");
+  const [distanceRange, setDistanceRange] = useState("all");
 
   // Fetch meals from Firestore
   const fetchMeals = async () => {
@@ -117,11 +122,31 @@ const SearchScreen = ({ navigation, route }) => {
     }
   };
 
-  // Filter meals and users based on search query
-  const filteredMeals = meals.filter(
-    (meal) =>
-      meal.title && meal.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter meals and users based on search query and selected filters
+  const filteredMeals = meals.filter((meal) => {
+    const matchesSearchQuery =
+      meal.title &&
+      meal.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPriceRange =
+      priceRange === "all" ||
+      (priceRange === "low" && meal.price < 10) || // Adjust the price thresholds as needed
+      (priceRange === "high" && meal.price >= 10);
+    const matchesRatingRange =
+      ratingRange === "all" ||
+      (ratingRange === "low" && meal.rating < 4) || // Adjust the rating thresholds as needed
+      (ratingRange === "high" && meal.rating >= 4);
+    const matchesDistanceRange =
+      distanceRange === "all" ||
+      (distanceRange === "near" && meal.distance < 5) || // Adjust the distance thresholds as needed
+      (distanceRange === "far" && meal.distance >= 5);
+
+    return (
+      matchesSearchQuery &&
+      matchesPriceRange &&
+      matchesRatingRange &&
+      matchesDistanceRange
+    );
+  });
 
   const filteredUsers = users.filter(
     (user) =>
@@ -142,7 +167,7 @@ const SearchScreen = ({ navigation, route }) => {
         <View style={styles.mealDetails}>
           <Text style={styles.mealTitle}>{item.title}</Text>
           <Text style={styles.mealMeta}>
-            {item.items} items | {item.distance}
+            {item.items} items | {item.distance} km
           </Text>
           <Text style={styles.mealPrice}>${item.price}</Text>
         </View>
@@ -176,6 +201,14 @@ const SearchScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
+  const openFilterModal = () => {
+    setFilterModalVisible(true);
+  };
+
+  const closeFilterModal = () => {
+    setFilterModalVisible(false);
+  };
+
   if (loading) {
     return (
       <ActivityIndicator style={styles.loading} size="large" color="#00c853" />
@@ -183,29 +216,88 @@ const SearchScreen = ({ navigation, route }) => {
   }
 
   return (
-    <FlatList
-      data={[...filteredMeals, ...filteredUsers]}
-      renderItem={({ item }) =>
-        item.title ? renderMealItem({ item }) : renderUserItem({ item })
-      }
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={
-        <View style={styles.headerContainer}>
-          <View style={styles.searchContainer}>
-            <FontAwesome name="search" size={20} color="grey" />
-            <TextInput
-              placeholder="Search for meals or users..."
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={(text) => setSearchQuery(text)}
-            />
+    <View style={{ flex: 1 }} >
+      <FlatList
+        data={[...filteredMeals, ...filteredUsers]}
+        renderItem={({ item }) =>
+          item.title ? renderMealItem({ item }) : renderUserItem({ item })
+        
+        }
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <View style={styles.headerContainer}>
+            <View style={styles.searchContainer}>
+              <FontAwesome name="search" size={20} color="grey" />
+              <TextInput
+                placeholder="Search for meals or users..."
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={(text) => setSearchQuery(text)}
+              />
+              <TouchableOpacity onPress={openFilterModal}>
+                <FontAwesome name="filter" size={20} color="grey" />
+              </TouchableOpacity>
+            </View>
+            {error && <Text style={styles.error}>{error}</Text>}
           </View>
-          {error && <Text style={styles.error}>{error}</Text>}
+        }
+        ListEmptyComponent={<Text>No results found.</Text>}
+        contentContainerStyle={styles.listContainer}
+      />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={filterModalVisible}
+        onRequestClose={closeFilterModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filter Options</Text>
+
+            <Text style={styles.filterLabel}>Price Range</Text>
+            <TouchableOpacity onPress={() => setPriceRange("all")}>
+              <Text style={styles.filterOption}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPriceRange("low")}>
+              <Text style={styles.filterOption}>Low ($0 - $10)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPriceRange("high")}>
+              <Text style={styles.filterOption}>High (≥ $10)</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.filterLabel}>Rating Range</Text>
+            <TouchableOpacity onPress={() => setRatingRange("all")}>
+              <Text style={styles.filterOption}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setRatingRange("low")}>
+              <Text style={styles.filterOption}>Low (≤ 3 stars)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setRatingRange("high")}>
+              <Text style={styles.filterOption}>High (≥ 3 stars)</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.filterLabel}>Distance Range</Text>
+            <TouchableOpacity onPress={() => setDistanceRange("all")}>
+              <Text style={styles.filterOption}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setDistanceRange("near")}>
+              <Text style={styles.filterOption}>Near (≤ 5 km)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setDistanceRange("far")}>
+              <Text style={styles.filterOption}>Far (≥ 5 km)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={closeFilterModal}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      }
-      ListEmptyComponent={<Text>No results found.</Text>}
-      contentContainerStyle={styles.listContainer}
-    />
+      </Modal>
+    </View>
   );
 };
 const styles = StyleSheet.create({
@@ -289,6 +381,43 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
     marginVertical: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  filterLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  filterOption: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+  closeButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#2196F3",
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
