@@ -1,0 +1,33 @@
+{
+  "DarkMode": "Chế độ tối",
+  "LightMode": "Chế độ sáng",
+  "Language": "Ngôn ngữ",
+  "UpdateData": "Cập nhật dữ liệu",
+  "DeleteData": "Xóa dữ liệu",
+  "Favorites": "Yêu thích",
+  "Logout": "Đăng xuất",
+
+  "common": {
+    "home": "Trang chủ",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ",
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "search": "Tìm kiếm",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "errors": {
+    "invalid_email": "Địa chỉ email không hợp lệ",
+    "password_mismatch": "Mật khẩu không khớp",
+    "required_field": "Trường này bắt buộc"
+  },
+  "buttons": {
+    "save": "Lưu",
+    "cancel": "Hủy bỏ",
+    "submit": "Gửi",
+    "next": "Tiếp theo",
+    "previous": "Trước đó"
+  }
+}

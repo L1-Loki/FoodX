@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+
 import {
   getAuth,
   initializeAuth,
@@ -20,14 +21,16 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = initializeApp(firebaseConfig);
+
+// Khởi tạo Firebase Auth với persistence
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
 
+// Khởi tạo các dịch vụ khác
 const db = getFirestore(app);
-const fb_auth = getAuth(app);
 const database = getDatabase(app);
 const storage = getStorage(app);
 
-export { app, auth, db, database, storage, fb_auth };
+export { app, auth, db, database, storage };

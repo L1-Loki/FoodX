@@ -1,0 +1,33 @@
+{
+  "DarkMode": "Dark Mode",
+  "LightMode": "Light Mode",
+  "Language": "Language",
+  "UpdateData": "Update Data",
+  "DeleteData": "Delete Data",
+  "Favorites": "Favorites",
+  "Logout": "Logout",
+
+  "common": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Signup",
+    "search": "Search",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "errors": {
+    "invalid_email": "Invalid email address",
+    "password_mismatch": "Passwords do not match",
+    "required_field": "This field is required"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "next": "Next",
+    "previous": "Previous"
+  }
+}
