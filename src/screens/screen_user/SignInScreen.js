@@ -173,7 +173,7 @@ export default function SignInScreen({ navigation }) {
           <Text style={styles.signupText}>Sign up</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <TouchableOpacity>
           <Text
             style={styles.signupText}
@@ -182,7 +182,7 @@ export default function SignInScreen({ navigation }) {
             Signin with phone number
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 }

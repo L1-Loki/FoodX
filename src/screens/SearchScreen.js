@@ -36,22 +36,41 @@ const SearchScreen = ({ navigation, route }) => {
   const [ratingRange, setRatingRange] = useState("all");
   const [distanceRange, setDistanceRange] = useState("all");
 
-  // Fetch meals from Firestore
+  // Fetch meals from Firestore and their reviews
   const fetchMeals = async () => {
     try {
       const mealCollection = collection(db, "meals");
       const mealSnapshot = await getDocs(mealCollection);
-      const mealList = mealSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const mealList = [];
+
+      for (const mealDoc of mealSnapshot.docs) {
+        const mealData = mealDoc.data();
+        const reviewsRef = collection(db, "meals", mealDoc.id, "reviews");
+        const reviewsSnapshot = await getDocs(reviewsRef);
+        const reviews = reviewsSnapshot.docs.map((doc) => doc.data());
+
+        // Calculate total and average rating
+        const totalRating = reviews.reduce(
+          (acc, review) => acc + review.rating,
+          0
+        );
+        const averageRating =
+          reviews.length > 0 ? totalRating / reviews.length : 0;
+
+        mealList.push({
+          id: mealDoc.id,
+          ...mealData,
+          reviews,
+          rating: averageRating,
+        });
+      }
+
       setMeals(mealList);
     } catch (error) {
       console.error("Error fetching meals: ", error);
       setError(error.message);
     }
   };
-
   // Fetch favorites from Firestore
   const fetchFavorites = async () => {
     try {
@@ -62,6 +81,36 @@ const SearchScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error fetching favorites: ", error);
     }
+  };
+
+  // Function to render stars based on rating
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const halfStars = rating % 1 >= 0.5 ? 1 : 0;
+
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<AntDesign key={i} name="star" size={16} color="gold" />);
+    }
+    // Add half stars
+    for (let i = 0; i < halfStars; i++) {
+      stars.push(
+        <AntDesign key={fullStars + i} name="star" size={16} color="gold" />
+      );
+    }
+    // Add empty stars
+    for (let i = 0; i < 5 - fullStars - halfStars; i++) {
+      stars.push(
+        <AntDesign
+          key={fullStars + halfStars + i}
+          name="staro"
+          size={16}
+          color="gold"
+        />
+      );
+    }
+    return stars;
   };
 
   // Fetch users by fullName from Firestore
@@ -113,6 +162,9 @@ const SearchScreen = ({ navigation, route }) => {
         await setDoc(favoritesRef, {
           title: meal.title,
           image: meal.image || "https://via.placeholder.com/80",
+          price: meal.price,
+          distance: meal.distance,
+          rating: meal.rating,
         });
         setFavorites((prev) => new Set(prev).add(meal.id));
       }
@@ -133,8 +185,8 @@ const SearchScreen = ({ navigation, route }) => {
       (priceRange === "high" && meal.price >= 10);
     const matchesRatingRange =
       ratingRange === "all" ||
-      (ratingRange === "low" && meal.rating < 4) || // Adjust the rating thresholds as needed
-      (ratingRange === "high" && meal.rating >= 4);
+      (ratingRange === "low" && meal.rating < 3) || // Adjust the rating thresholds as needed
+      (ratingRange === "high" && meal.rating >= 3);
     const matchesDistanceRange =
       distanceRange === "all" ||
       (distanceRange === "near" && meal.distance < 5) || // Adjust the distance thresholds as needed
@@ -167,9 +219,10 @@ const SearchScreen = ({ navigation, route }) => {
         <View style={styles.mealDetails}>
           <Text style={styles.mealTitle}>{item.title}</Text>
           <Text style={styles.mealMeta}>
-            {item.items} items | {item.distance} km
+            {item.items} items | {item.distance}
           </Text>
           <Text style={styles.mealPrice}>${item.price}</Text>
+          <View style={styles.starsContainer}>{renderStars(item.rating)}</View>
         </View>
         <TouchableOpacity onPress={() => toggleFavorite(item)}>
           <AntDesign
@@ -190,7 +243,7 @@ const SearchScreen = ({ navigation, route }) => {
     >
       <View style={styles.mealInfo}>
         <Image
-          source={{ uri: item.profilePic || "https://via.placeholder.com/80" }}
+          source={{ uri: item.imageUri || "https://via.placeholder.com/80" }}
           style={styles.mealImage}
         />
         <View style={styles.mealDetails}>
@@ -216,12 +269,11 @@ const SearchScreen = ({ navigation, route }) => {
   }
 
   return (
-    <View style={{ flex: 1 }} >
+    <View style={{ flex: 1 }}>
       <FlatList
         data={[...filteredMeals, ...filteredUsers]}
         renderItem={({ item }) =>
           item.title ? renderMealItem({ item }) : renderUserItem({ item })
-        
         }
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
@@ -351,8 +403,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mealImage: {
-    width: 80,
-    height: 80,
+    width: 110,
+    height: 110,
     borderRadius: 10,
     marginRight: 15,
   },
@@ -366,6 +418,7 @@ const styles = StyleSheet.create({
   mealMeta: {
     color: "#666",
   },
+
   mealPrice: {
     fontSize: 16,
     fontWeight: "bold",
@@ -418,6 +471,9 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  starsContainer: {
+    flexDirection: "row",
   },
 });
 

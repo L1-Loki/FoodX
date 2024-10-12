@@ -25,7 +25,7 @@ const UpdateMeal = ({ route, navigation }) => {
   const [meal, setMeal] = useState({
     title: "",
     distance: "",
-    imageUrl: "",
+    image: "",
     items: "",
     price: "",
     location: { latitude: 10.9821, longitude: 106.6459 }, // Thêm trường location
@@ -44,8 +44,8 @@ const UpdateMeal = ({ route, navigation }) => {
           console.log("Fetched meal data:", mealData);
           setMeal({
             title: mealData.title,
-            distance: mealData.distance,
-            imageUrl: mealData.image || "",
+            distance: mealData.distance ,
+            image: mealData.image || "",
             items: mealData.items.toString(),
             price: mealData.price.toString(),
             location: mealData.location || {
@@ -108,7 +108,7 @@ const UpdateMeal = ({ route, navigation }) => {
         const downloadUrl = await getDownloadURL(storageRef);
         setMeal((prevMeal) => ({
           ...prevMeal,
-          imageUrl: downloadUrl,
+          image: downloadUrl,
         }));
 
         Alert.alert("Success", "Image uploaded successfully!");
@@ -126,7 +126,7 @@ const UpdateMeal = ({ route, navigation }) => {
       const updatedData = {
         title: meal.title,
         distance: meal.distance,
-        imageUrl: meal.imageUrl,
+        image: meal.image,
         items: Number(meal.items),
         price: Number(meal.price),
         location: meal.location, // Thêm location vào dữ liệu cập nhật
@@ -187,9 +187,9 @@ const UpdateMeal = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.formContainer}>
           <View style={styles.imageContainer}>
-            {meal.imageUrl ? (
+            {meal.image ? (
               <Image
-                source={{ uri: meal.imageUrl }}
+                source={{ uri: meal.image }}
                 style={styles.selectedImage}
               />
             ) : (

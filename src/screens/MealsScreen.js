@@ -18,7 +18,7 @@ import {
   doc,
   setDoc,
 } from "firebase/firestore";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons";
 import { db } from "../../firebaseConfig";
 
 const MealsScreen = ({ navigation }) => {
@@ -30,15 +30,32 @@ const MealsScreen = ({ navigation }) => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
 
-  // Lấy danh sách meals từ Firestore
+  // Fetch meals from Firestore
   const fetchMeals = useCallback(async () => {
     try {
       const mealCollection = collection(db, "meals");
       const mealSnapshot = await getDocs(mealCollection);
-      const mealList = mealSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+
+      const mealList = await Promise.all(
+        mealSnapshot.docs.map(async (doc) => {
+          const mealData = { id: doc.id, ...doc.data() };
+
+          // Fetch reviews for each meal
+          const reviewsRef = collection(db, "meals", mealData.id, "reviews");
+          const reviewsSnapshot = await getDocs(reviewsRef);
+          const reviews = reviewsSnapshot.docs.map((doc) => doc.data());
+
+          // Calculate total and average rating
+          const totalRating = reviews.reduce(
+            (acc, review) => acc + review.rating,
+            0
+          );
+          const averageRating =
+            reviews.length > 0 ? totalRating / reviews.length : 0;
+
+          return { ...mealData, reviews, rating: averageRating };
+        })
+      );
 
       setMeals(mealList);
     } catch (error) {
@@ -46,7 +63,7 @@ const MealsScreen = ({ navigation }) => {
     }
   }, []);
 
-  // Lấy danh sách favorites từ Firestore
+  // Fetch favorites from Firestore
   const fetchFavorites = useCallback(async () => {
     try {
       const favoritesCollection = collection(db, "favorites");
@@ -59,7 +76,37 @@ const MealsScreen = ({ navigation }) => {
     }
   }, []);
 
-  // Lấy dữ liệu meals và favorites
+  // Function to render stars based on rating
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const halfStars = rating % 1 >= 0.5 ? 1 : 0;
+
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<AntDesign key={i} name="star" size={16} color="gold" />);
+    }
+    // Add half stars
+    for (let i = 0; i < halfStars; i++) {
+      stars.push(
+        <AntDesign key={fullStars + i} name="star" size={16} color="gold" />
+      );
+    }
+    // Add empty stars
+    for (let i = 0; i < 5 - fullStars - halfStars; i++) {
+      stars.push(
+        <AntDesign
+          key={fullStars + halfStars + i}
+          name="staro"
+          size={16}
+          color="gold"
+        />
+      );
+    }
+    return stars;
+  };
+
+  // Fetch meals and favorites on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -71,7 +118,7 @@ const MealsScreen = ({ navigation }) => {
     fetchData();
   }, [fetchMeals, fetchFavorites]);
 
-  // Thêm hoặc xóa khỏi favorites
+  // Toggle favorite status
   const toggleFavorite = async (meal) => {
     const mealRef = doc(db, "favorites", meal.id);
     try {
@@ -80,21 +127,22 @@ const MealsScreen = ({ navigation }) => {
         setFavorites(
           (prev) => new Set([...prev].filter((id) => id !== meal.id))
         );
-      
       } else {
         await setDoc(mealRef, {
           title: meal.title,
           image: meal.image || "https://via.placeholder.com/80",
+          price: meal.price, // Lưu giá
+          distance: meal.distance, // Lưu khoảng cách
+          rating: meal.rating, // Lưu đánh giá
         });
         setFavorites((prev) => new Set(prev).add(meal.id));
-       
       }
     } catch (error) {
       Alert.alert("Error", "Could not update favorites.");
     }
   };
 
-  // Xóa meal
+  // Delete meal
   const handleDelete = async (mealId) => {
     try {
       await deleteDoc(doc(db, "meals", mealId));
@@ -116,7 +164,7 @@ const MealsScreen = ({ navigation }) => {
     setModalVisible(true);
   };
 
-  // Đóng menu
+  // Close menu
   const closeMenu = () => {
     setModalVisible(false);
   };
@@ -145,10 +193,12 @@ const MealsScreen = ({ navigation }) => {
       />
       <View style={styles.mealDetails}>
         <Text style={styles.mealTitle}>{item.title}</Text>
-        <Text style={styles.mealMeta}>
-          {item.items} items | {item.distance}
-        </Text>
+        <View style={styles.location}>
+          <Entypo name="location-pin" size={14} color="#555" />
+          <Text style={styles.mealMeta}>{item.distance}</Text>
+        </View>
         <Text style={styles.mealPrice}>${item.price}</Text>
+        <View style={styles.starsContainer}>{renderStars(item.rating)}</View>
       </View>
       <TouchableOpacity onPress={() => toggleFavorite(item)}>
         <AntDesign
@@ -167,6 +217,7 @@ const MealsScreen = ({ navigation }) => {
         data={meals}
         renderItem={renderMealItem}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
       />
       <Modal
         transparent={true}
@@ -229,45 +280,52 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
+  listContainer: {
+    paddingBottom: 20,
+  },
   mealItem: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    marginVertical: 10,
-    padding: 10,
     flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "black",
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    marginVertical: 8,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    overflow: "hidden",
     elevation: 3,
+    padding: 15,
+    alignItems: "center",
   },
   mealImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    marginRight: 15,
   },
   mealDetails: {
     flex: 1,
-    marginLeft: 10,
   },
   mealTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   mealMeta: {
-    color: "#888",
-    fontSize: 12,
+    fontSize: 14,
+    color: "#555",
+  },
+  location: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
   },
   mealPrice: {
-    color: "green",
-    fontWeight: "bold",
-    marginTop: 5,
     fontSize: 16,
+    fontWeight: "600",
+    color: "green",
+    marginBottom: 5,
+  },
+  starsContainer: {
+    flexDirection: "row",
   },
   heartIcon: {
-    justifyContent: "center",
-    alignItems: "center",
     marginLeft: 10,
   },
   modalOverlay: {
@@ -278,13 +336,16 @@ const styles = StyleSheet.create({
   menuContainer: {
     position: "absolute",
     backgroundColor: "white",
-    borderRadius: 10,
-    elevation: 5,
+    borderRadius: 8,
     padding: 10,
+    elevation: 5,
   },
   menuItem: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     fontSize: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#DCDCDC",
   },
 });
 

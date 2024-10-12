@@ -107,19 +107,19 @@ const AddMeal = ({ navigation }) => {
     }
 
     try {
-      let imageUrl = "adaptive-icon.png";
+      let image = "adaptive-icon.png";
       if (meal.image) {
         const response = await fetch(meal.image.uri);
         const blob = await response.blob();
         const imageRef = ref(storage, `meals/${meal.image.fileName}`);
         await uploadBytes(imageRef, blob);
-        imageUrl = await getDownloadURL(imageRef);
+        image = await getDownloadURL(imageRef);
       }
 
       const mealData = {
         title: meal.title,
         distance: meal.distance + " km",
-        image: imageUrl,
+        image: image,
         items: Number(meal.items),
         price: Number(meal.price),
         fullName: fullName,
@@ -209,7 +209,7 @@ const AddMeal = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="Distance (km)"
-            value={meal.distance ? `${meal.distance}` : ""}
+            value={meal.distance ? `${meal.distance} km` : ""}
             editable={false}
           />
           <TextInput

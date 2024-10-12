@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,12 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Alert, // Thêm Alert để hiển thị thông báo lỗi
+  Alert,
 } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useTheme } from "../Theme/ThemeContext";
+import { doc, getDoc } from "firebase/firestore"; // Import để lấy tài liệu từ Firestore
+import { db, auth } from "../../firebaseConfig"; // Đảm bảo rằng bạn đã cấu hình đúng Firebase
 
 const CATEGORIES = [
   {
@@ -51,6 +53,35 @@ const CATEGORIES = [
 const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái query tìm kiếm
+  const [userInfo, setUserInfo] = useState({ fullName: "", imageUri: "" });
+  const [error, setError] = useState(""); // Thêm state để lưu thông báo lỗi
+  const user = auth.currentUser;
+  const userId = user.email; // Thay thế bằng userId hợp lệ từ Firebase Auth hoặc từ context
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserInfo({
+            fullName: data.fullName || "No name provided", // Lấy tên người dùng
+            imageUri:
+              data.imageUri ||
+              "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg", // Lấy hình ảnh người dùng
+          });
+        } else {
+          console.log("No such document!");
+          setError("User not found."); // Cập nhật thông báo lỗi
+        }
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+        setError("Error fetching user info. Please try again later.");
+      }
+    };
+
+    fetchUserInfo();
+  }, [userId]);
 
   // Xử lý tìm kiếm và chuyển hướng sang màn hình SearchScreen
   const handleSearchSubmit = () => {
@@ -86,18 +117,19 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.userEditContainer}>
           <Image
             source={{
-              uri: "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
+              uri:
+                userInfo.imageUri ||
+                "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
             }}
             style={styles.avatar}
           />
+
           <View style={styles.headerTextContainer}>
-            <Text style={styles.deliveryText}>Deliver to</Text>
-            <Text style={styles.locationText}>Times Square</Text>
+            <Text style={styles.locationText}>{userInfo.fullName}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.headerRight}>
-          <FontAwesome name="bell-o" size={24} color="black" />
-          <FontAwesome name="shopping-cart" size={24} color="black" />
+          <Feather name="bell" size={24} color="black" />
         </View>
       </View>
 
@@ -179,8 +211,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     width: 60,
     justifyContent: "space-between",
   },
@@ -244,23 +275,21 @@ const styles = StyleSheet.create({
     color: "white",
   },
   categoriesContainer: {
-    justifyContent: "space-between",
+    paddingBottom: 20,
   },
   categoryItem: {
     flex: 1,
     alignItems: "center",
-    marginVertical: 10,
-    paddingHorizontal: 5,
+    margin: 10,
   },
   categoryImage: {
-    width: 50,
-    height: 50,
-    resizeMode: "contain",
+    width: 40,
+    height: 40,
+    borderRadius: 5,
+    marginBottom: 5,
   },
   categoryTitle: {
-    marginTop: 7,
-    fontSize: 15,
-    textAlign: "center",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

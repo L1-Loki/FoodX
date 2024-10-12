@@ -5,7 +5,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import HomeStackNavigator from "./HomeStackNavigator";
 import CategoriesStackNavigator from "./CategoriesStackNavigator";
 import SettingsStackNavigator from "./SettingsStackNavigator";
-import UserEditScreen from "../screens/UserEditScreen";
+import UserProfile from "../screens/UserProfile";
 
 const Tab = createBottomTabNavigator();
 
@@ -22,7 +22,7 @@ const TabNavigator = () => (
           iconName = "heart";
         } else if (route.name === "Settings") {
           iconName = "gear";
-        } else if (route.name === "UserEditScreen") {
+        } else if (route.name === "UserProfile") {
           iconName = "user";
         }
         return <FontAwesome name={iconName} size={size} color={color} />;
@@ -45,9 +45,8 @@ const TabNavigator = () => (
       options={{ title: "Settings", headerShown: false }}
     />
     <Tab.Screen
-      name="UserEditScreen"
-      component={UserEditScreen}
-      options={{ title: "Profile", headerShown: false }}
+      name="UserProfile"
+      component={UserProfile}
     />
   </Tab.Navigator>
 );

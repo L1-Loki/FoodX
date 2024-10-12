@@ -93,11 +93,7 @@ const ReviewForm = ({ route, navigation }) => {
 
       setRating(0);
       setReviewText("");
-      // Alert.alert(
-      //   "Success",
-      //   `You rated ${rating} stars with review: "${reviewText}"`
-      // );
-      // navigation.goBack();
+    
     } catch (error) {
       console.error("Error adding review: ", error);
       Alert.alert("Error", "Failed to submit review.");
@@ -128,7 +124,6 @@ const ReviewForm = ({ route, navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      {/* Filter section */}
       <View style={styles.sortContainer}>
         <FlatList
           data={[0, 1, 2, 3, 4, 5]}
@@ -180,7 +175,7 @@ const ReviewForm = ({ route, navigation }) => {
         numberOfLines={4}
       />
       <TouchableOpacity style={styles.submitButton} onPress={submitReview}>
-        <Text style={styles.submitButtonText}>Submit Review</Text>
+        <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -250,8 +245,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
   },
   reviewItem: {
     padding: 10,
