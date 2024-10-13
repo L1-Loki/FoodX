@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../../firebaseConfig"; // Import storage từ Firebase
+import { db, storage, auth } from "../../../firebaseConfig"; // Import storage từ Firebase
 import * as ImagePicker from "expo-image-picker";
 import MapView, { Marker } from "react-native-maps"; // Thêm import MapView
 import * as Location from "expo-location"; // Thêm import Location
@@ -31,6 +31,8 @@ const UpdateMeal = ({ route, navigation }) => {
     location: { latitude: 10.9821, longitude: 106.6459 }, // Thêm trường location
   });
   const [userLocation, setUserLocation] = useState(null);
+  const [email, setEmail] = useState("Anonymous");
+  const currentUser = auth.currentUser;
 
   // Lấy dữ liệu meal từ Firestore và hiển thị
   useEffect(() => {
@@ -44,7 +46,7 @@ const UpdateMeal = ({ route, navigation }) => {
           console.log("Fetched meal data:", mealData);
           setMeal({
             title: mealData.title,
-            distance: mealData.distance ,
+            distance: mealData.distance,
             image: mealData.image || "",
             items: mealData.items.toString(),
             price: mealData.price.toString(),
@@ -61,10 +63,23 @@ const UpdateMeal = ({ route, navigation }) => {
         Alert.alert("Error", "Failed to fetch meal data.");
       }
     };
-
+    fetchUseremail();
     fetchMeal();
   }, [mealId]);
 
+  const fetchUseremail = async () => {
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser.email);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setEmail(userData.email || "Anonymous");
+      } else {
+        console.log("User document not found");
+      }
+    }
+  };
   // Lấy vị trí hiện tại của người dùng
   useEffect(() => {
     const getLocation = async () => {
@@ -129,6 +144,7 @@ const UpdateMeal = ({ route, navigation }) => {
         image: meal.image,
         items: Number(meal.items),
         price: Number(meal.price),
+        email: email,
         location: meal.location, // Thêm location vào dữ liệu cập nhật
       };
 

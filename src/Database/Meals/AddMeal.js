@@ -18,8 +18,7 @@ import MapView, { Marker } from "react-native-maps";
 import { getDistance } from "geolib";
 import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth } from "../../../firebaseConfig";
-import { db, storage } from "../../../firebaseConfig";
+import { db, storage, auth } from "../../../firebaseConfig";
 
 const AddMeal = ({ navigation }) => {
   const [meal, setMeal] = useState({
@@ -30,28 +29,28 @@ const AddMeal = ({ navigation }) => {
     price: "",
     location: null,
   });
-  const [fullName, setFullName] = useState("Anonymous");
+  const [email, setEmail] = useState("Anonymous");
   const [currentLocation, setCurrentLocation] = useState(null);
   const [meals, setMeals] = useState([]);
 
   const currentUser = auth.currentUser;
 
   useEffect(() => {
-    const fetchUserFullName = async () => {
+    const fetchUseremail = async () => {
       if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
+        const userRef = doc(db, "users", currentUser.email);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          setFullName(userData.fullName || "Anonymous");
+          setEmail(userData.email || "Anonymous");
         } else {
-          console.log("User document not found");
+          console.log("User 123 document not found");
         }
       }
     };
 
-    fetchUserFullName();
+    fetchUseremail();
     fetchMeals();
     getCurrentLocation(); // Lấy vị trí hiện tại ngay khi tải
   }, [currentUser]);
@@ -107,22 +106,22 @@ const AddMeal = ({ navigation }) => {
     }
 
     try {
-      let image = "adaptive-icon.png";
+      let imageUrl = "adaptive-icon.png";
       if (meal.image) {
         const response = await fetch(meal.image.uri);
         const blob = await response.blob();
         const imageRef = ref(storage, `meals/${meal.image.fileName}`);
         await uploadBytes(imageRef, blob);
-        image = await getDownloadURL(imageRef);
+        imageUrl = await getDownloadURL(imageRef);
       }
 
       const mealData = {
         title: meal.title,
         distance: meal.distance + " km",
-        image: image,
+        image: imageUrl,
         items: Number(meal.items),
         price: Number(meal.price),
-        fullName: fullName,
+        email: email,
         location: meal.location,
       };
 

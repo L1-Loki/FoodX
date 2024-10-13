@@ -17,18 +17,22 @@ import {
   deleteDoc,
   doc,
   setDoc,
+  getDoc,
 } from "firebase/firestore";
 import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons";
-import { db } from "../../firebaseConfig";
+import { db, auth } from "../../firebaseConfig";
 
 const MealsScreen = ({ navigation }) => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [email, setEmail] = useState("Anonymous");
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
+
+  const currentUser = auth.currentUser; // Lấy người dùng hiện tại
 
   // Fetch meals from Firestore
   const fetchMeals = useCallback(async () => {
@@ -53,6 +57,7 @@ const MealsScreen = ({ navigation }) => {
           const averageRating =
             reviews.length > 0 ? totalRating / reviews.length : 0;
 
+          // Trả về dữ liệu món ăn với trường email
           return { ...mealData, reviews, rating: averageRating };
         })
       );
@@ -62,6 +67,21 @@ const MealsScreen = ({ navigation }) => {
       setError("Error fetching meals.");
     }
   }, []);
+
+  // Fetch user email
+  const fetchUserEmail = async () => {
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser.email);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setEmail(userData.email || "Anonymous");
+      } else {
+        console.log("User document not found");
+      }
+    }
+  };
 
   // Fetch favorites from Firestore
   const fetchFavorites = useCallback(async () => {
@@ -112,6 +132,7 @@ const MealsScreen = ({ navigation }) => {
       setLoading(true);
       await fetchMeals();
       await fetchFavorites();
+      await fetchUserEmail(); // Đảm bảo gọi fetchUserEmail ở đây
       setLoading(false);
     };
 
@@ -131,9 +152,9 @@ const MealsScreen = ({ navigation }) => {
         await setDoc(mealRef, {
           title: meal.title,
           image: meal.image || "https://via.placeholder.com/80",
-          price: meal.price, // Lưu giá
-          distance: meal.distance, // Lưu khoảng cách
-          rating: meal.rating, // Lưu đánh giá
+          price: meal.price,
+          distance: meal.distance,
+          rating: meal.rating,
         });
         setFavorites((prev) => new Set(prev).add(meal.id));
       }
@@ -154,7 +175,6 @@ const MealsScreen = ({ navigation }) => {
     }
   };
 
-  // Mở menu
   const handleLongPress = (event, item) => {
     setSelectedMeal(item);
     setMenuPosition({
@@ -162,12 +182,30 @@ const MealsScreen = ({ navigation }) => {
       y: event.nativeEvent.pageY - 100,
     });
     setModalVisible(true);
+
+    // Cập nhật lại quyền sở hữu
+    if (item.email) {
+      console.log("Selected meal email: ", item.email);
+      console.log("User email: ", email);
+    } else {
+      console.log("No email found for selected meal.");
+    }
   };
 
   // Close menu
   const closeMenu = () => {
     setModalVisible(false);
   };
+
+  const isOwner = selectedMeal && selectedMeal.email === email; // Kiểm tra quyền sở hữu món ăn
+  console.log("email: " + email);
+
+  console.log(
+    "isOwner: " +
+      (isOwner
+        ? "Người dùng là chủ sở hữu"
+        : "Người dùng không phải là chủ sở hữu")
+  );
 
   if (loading) {
     return (
@@ -221,8 +259,8 @@ const MealsScreen = ({ navigation }) => {
       />
       <Modal
         transparent={true}
-        visible={modalVisible}
         animationType="fade"
+        visible={modalVisible}
         onRequestClose={closeMenu}
       >
         <TouchableWithoutFeedback onPress={closeMenu}>
@@ -242,19 +280,31 @@ const MealsScreen = ({ navigation }) => {
                 >
                   <Text style={styles.menuItem}>Add</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    navigation.navigate("UpdateMeal", {
-                      mealId: selectedMeal.id,
-                    });
-                  }}
-                >
-                  <Text style={styles.menuItem}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(selectedMeal.id)}>
-                  <Text style={styles.menuItem}>Delete</Text>
-                </TouchableOpacity>
+
+                {isOwner && (
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setModalVisible(false);
+                        navigation.navigate("UpdateMeal", {
+                          mealId: selectedMeal.id,
+                        });
+                      }}
+                      style={styles.menuButton}
+                    >
+                      <Text style={styles.menuItem}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setModalVisible(false); // Đóng modal trước khi thực hiện xóa
+                        handleDelete(selectedMeal.id);
+                      }}
+                      style={styles.menuButton}
+                    >
+                      <Text style={styles.menuItem}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </TouchableWithoutFeedback>
           </View>
