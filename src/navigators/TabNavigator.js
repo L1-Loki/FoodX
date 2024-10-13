@@ -47,6 +47,8 @@ const TabNavigator = () => (
     <Tab.Screen
       name="UserProfile"
       component={UserProfile}
+      options={{ headerShown: false }}
+
     />
   </Tab.Navigator>
 );

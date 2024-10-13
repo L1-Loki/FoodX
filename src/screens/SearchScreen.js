@@ -244,7 +244,7 @@ const SearchScreen = ({ navigation, route }) => {
       <View style={styles.mealInfo}>
         <Image
           source={{ uri: item.imageUri || "https://via.placeholder.com/80" }}
-          style={styles.mealImage}
+          style={styles.avataImage}
         />
         <View style={styles.mealDetails}>
           <Text style={styles.mealTitle}>{item.fullName}</Text>
@@ -403,13 +403,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mealImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 10,
-    marginRight: 15,
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#ffff",
+  },
+  avataImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#ffff",
   },
   mealDetails: {
     flex: 1,
+    marginLeft: 10,
   },
   mealTitle: {
     fontSize: 18,

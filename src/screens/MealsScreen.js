@@ -32,7 +32,7 @@ const MealsScreen = ({ navigation }) => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
 
-  const currentUser = auth.currentUser; // Lấy người dùng hiện tại
+  const currentUser = auth.currentUser;
 
   // Fetch meals from Firestore
   const fetchMeals = useCallback(async () => {
@@ -201,10 +201,7 @@ const MealsScreen = ({ navigation }) => {
   console.log("email: " + email);
 
   console.log(
-    "isOwner: " +
-      (isOwner
-        ? "Người dùng là chủ sở hữu"
-        : "Người dùng không phải là chủ sở hữu")
+    "isOwner: " + (isOwner ? "là chủ sở hữu" : "không phải là chủ sở hữu")
   );
 
   if (loading) {
@@ -254,7 +251,7 @@ const MealsScreen = ({ navigation }) => {
       <FlatList
         data={meals}
         renderItem={renderMealItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id || item.type}
         contentContainerStyle={styles.listContainer}
       />
       <Modal
@@ -272,14 +269,14 @@ const MealsScreen = ({ navigation }) => {
                   { top: menuPosition.y, left: menuPosition.x },
                 ]}
               >
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => {
                     navigation.navigate("AddMeal");
                     setModalVisible(false);
                   }}
                 >
                   <Text style={styles.menuItem}>Add</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 {isOwner && (
                   <View>
@@ -290,7 +287,6 @@ const MealsScreen = ({ navigation }) => {
                           mealId: selectedMeal.id,
                         });
                       }}
-                      style={styles.menuButton}
                     >
                       <Text style={styles.menuItem}>Edit</Text>
                     </TouchableOpacity>
@@ -299,7 +295,6 @@ const MealsScreen = ({ navigation }) => {
                         setModalVisible(false); // Đóng modal trước khi thực hiện xóa
                         handleDelete(selectedMeal.id);
                       }}
-                      style={styles.menuButton}
                     >
                       <Text style={styles.menuItem}>Delete</Text>
                     </TouchableOpacity>
@@ -337,7 +332,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginVertical: 8,
     backgroundColor: "#fff",
-    borderRadius: 8,
+    borderRadius: 24,
     overflow: "hidden",
     elevation: 3,
     padding: 15,
@@ -346,7 +341,7 @@ const styles = StyleSheet.create({
   mealImage: {
     width: 110,
     height: 110,
-    borderRadius: 8,
+    borderRadius: 24,
     marginRight: 15,
   },
   mealDetails: {
@@ -386,7 +381,7 @@ const styles = StyleSheet.create({
   menuContainer: {
     position: "absolute",
     backgroundColor: "white",
-    borderRadius: 8,
+    borderRadius: 24,
     padding: 10,
     elevation: 5,
   },
@@ -394,8 +389,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     fontSize: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#DCDCDC",
   },
 });
 

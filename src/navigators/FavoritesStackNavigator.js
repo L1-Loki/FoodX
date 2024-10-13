@@ -13,16 +13,16 @@ const FavoritesStackNavigator = () => (
       name="FavoritesScreen"
       component={FavoritesScreen}
       options={{ headerShown: false }}
+    />{" "}
+    <Stack.Screen
+      name="MealsScreen"
+      component={MealsScreen}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="MealDetailScreen"
       options={{ headerShown: false }}
       component={MealDetailScreen}
-    />
-    <Stack.Screen
-      name="MealsScreen"
-      component={MealsScreen}
-      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

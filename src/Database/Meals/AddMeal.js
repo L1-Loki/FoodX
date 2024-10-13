@@ -20,7 +20,8 @@ import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "../../../firebaseConfig";
 
-const AddMeal = ({ navigation }) => {
+const AddMeal = ({ navigation, route }) => {
+  const { onAddMeal } = route.params;
   const [meal, setMeal] = useState({
     title: "",
     distance: "",
@@ -114,7 +115,9 @@ const AddMeal = ({ navigation }) => {
         await uploadBytes(imageRef, blob);
         imageUrl = await getDownloadURL(imageRef);
       }
-
+      if (onAddMeal) {
+        onAddMeal();
+      }
       const mealData = {
         title: meal.title,
         distance: meal.distance + " km",
