@@ -189,7 +189,7 @@ const UserProfile = ({ route }) => {
       const updatedPostsCount = await getPostCountByEmail(
         auth.currentUser.email
       );
-
+      console.log("Adding meal:", newMealData);
       // Cập nhật số bài đăng trong Firestore cho người dùng
       await updateDoc(doc(db, "users", userId), {
         posts: updatedPostsCount,
@@ -411,6 +411,7 @@ const UserProfile = ({ route }) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
+        showsHorizontalScrollIndicator={false}
       />
       <Modal
         transparent={true}

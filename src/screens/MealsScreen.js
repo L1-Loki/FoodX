@@ -22,7 +22,8 @@ import {
 import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons";
 import { db, auth } from "../../firebaseConfig";
 
-const MealsScreen = ({ navigation }) => {
+const MealsScreen = ({ navigation, route }) => {
+  const { categoryTitle, showAll } = route.params;
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -197,12 +198,19 @@ const MealsScreen = ({ navigation }) => {
     setModalVisible(false);
   };
 
+  // Lọc món ăn theo danh mục
+  const filteredMeals = showAll
+    ? meals
+    : meals.filter((meal) => meal.category === categoryTitle);
+  useEffect(() => {
+    console.log("Category Title:", categoryTitle);
+    console.log("Show All:", showAll);
+  }, [categoryTitle, showAll]);
+
   const isOwner = selectedMeal && selectedMeal.email === email; // Kiểm tra quyền sở hữu món ăn
   console.log("email: " + email);
 
-  console.log(
-    "isOwner: " + (isOwner ? "là chủ sở hữu" : "không phải là chủ sở hữu")
-  );
+  console.log(isOwner ? "là chủ sở hữu" : "không phải là chủ sở hữu");
 
   if (loading) {
     return (
@@ -248,12 +256,18 @@ const MealsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.screen}>
-      <FlatList
-        data={meals}
-        renderItem={renderMealItem}
-        keyExtractor={(item) => item.id || item.type}
-        contentContainerStyle={styles.listContainer}
-      />
+      {filteredMeals.length > 0 ? (
+        <FlatList
+          data={filteredMeals}
+          renderItem={renderMealItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+        />
+      ) : (
+        <Text style={styles.noMealsText}>
+          No meals found for this category.
+        </Text>
+      )}
       <Modal
         transparent={true}
         animationType="fade"
@@ -312,7 +326,6 @@ const MealsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    padding: 10,
     backgroundColor: "#f9f9f9",
   },
   loadingContainer: {
@@ -327,6 +340,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 20,
+    paddingTop: 20,
   },
   mealItem: {
     flexDirection: "row",
@@ -389,6 +403,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     fontSize: 16,
+  },
+  noMealsText: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlignVertical: "center",
   },
 });
 

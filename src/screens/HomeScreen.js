@@ -11,9 +11,8 @@ import {
   Alert,
 } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
-import { useTheme } from "../Theme/ThemeContext";
-import { doc, getDoc } from "firebase/firestore"; // Import để lấy tài liệu từ Firestore
-import { db, auth } from "../../firebaseConfig"; // Đảm bảo rằng bạn đã cấu hình đúng Firebase
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import { db, auth } from "../../firebaseConfig";
 
 const CATEGORIES = [
   {
@@ -51,10 +50,11 @@ const CATEGORIES = [
 ];
 
 const HomeScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState(""); // Trạng thái query tìm kiếm
+  const [searchQuery, setSearchQuery] = useState("");
   const [userInfo, setUserInfo] = useState({ fullName: "", imageUri: "" });
-  const [error, setError] = useState(""); // Thêm state để lưu thông báo lỗi
+  const [error, setError] = useState("");
+  const [meals, setMeals] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const user = auth.currentUser;
   const userId = user.email; // Thay thế bằng userId hợp lệ từ Firebase Auth hoặc từ context
 
@@ -65,14 +65,14 @@ const HomeScreen = ({ navigation }) => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           setUserInfo({
-            fullName: data.fullName || "No name provided", // Lấy tên người dùng
+            fullName: data.fullName || "No name provided",
             imageUri:
               data.imageUri ||
-              "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg", // Lấy hình ảnh người dùng
+              "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
           });
         } else {
           console.log("No such document!");
-          setError("User not found."); // Cập nhật thông báo lỗi
+          setError("User not found.");
         }
       } catch (err) {
         console.error("Error fetching user info:", err);
@@ -80,16 +80,34 @@ const HomeScreen = ({ navigation }) => {
       }
     };
 
+    const fetchMeals = async () => {
+      try {
+        const mealCollection = collection(db, "meals");
+        const mealSnapshot = await getDocs(mealCollection);
+        const mealList = mealSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMeals(mealList);
+      } catch (error) {
+        console.error("Error fetching meals:", error);
+      }
+    };
+
+    fetchMeals();
     fetchUserInfo();
   }, [userId]);
 
-  // Xử lý tìm kiếm và chuyển hướng sang màn hình SearchScreen
+  const handleCategorySelect = (category) => {
+    // Chuyển hướng đến màn hình Meal với danh mục đã chọn
+    navigation.navigate("MealScreen", { categoryTitle: category.title });
+  };
+
   const handleSearchSubmit = () => {
     if (searchQuery.trim() === "") {
       Alert.alert("Lỗi", "Vui lòng nhập từ khóa tìm kiếm.");
       return;
     }
-
     navigation.navigate("SearchScreen", { query: searchQuery });
   };
 
@@ -101,7 +119,10 @@ const HomeScreen = ({ navigation }) => {
           if (itemData.item.title === "More") {
             navigation.navigate("Categories");
           } else {
-            // Thực hiện hành động khác nếu cần cho các mục khác
+            // Chuyển hướng đến màn hình hiển thị món ăn với danh mục đã chọn
+            navigation.navigate("MealsScreen", {
+              categoryTitle: itemData.item.title,
+            });
           }
         }}
       >
@@ -111,8 +132,18 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  const renderMealItem = (meal) => (
+    <View style={styles.mealCard}>
+      <Image source={{ uri: meal.image }} style={styles.mealImage} />
+      <Text style={styles.mealTitle}>{meal.title}</Text>
+    </View>
+  );
+
   return (
-    <ScrollView style={styles.screen}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={{ paddingBottom: 60 }}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.userEditContainer}>
           <Image
@@ -123,7 +154,6 @@ const HomeScreen = ({ navigation }) => {
             }}
             style={styles.avatar}
           />
-
           <View style={styles.headerTextContainer}>
             <Text style={styles.locationText}>{userInfo.fullName}</Text>
           </View>
@@ -140,16 +170,15 @@ const HomeScreen = ({ navigation }) => {
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={(text) => setSearchQuery(text)}
-          onSubmitEditing={handleSearchSubmit} // Thực hiện tìm kiếm khi nhấn Enter
+          onSubmitEditing={handleSearchSubmit}
         />
       </View>
 
-      {/* Special Offers Section */}
       <View style={styles.specialOffersContainer}>
         <Text style={styles.sectionTitle}>Special Offers</Text>
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <Text style={styles.seeAllText}>See All</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <View
         style={[styles.offerCard, { backgroundColor: theme.colors.primary }]}
@@ -158,13 +187,12 @@ const HomeScreen = ({ navigation }) => {
           source={require("../../assets/hamburger.jpg")}
           style={styles.offerImage}
         />
-        <View style={styles.offerTextContainer}>
+        {/* <View style={styles.offerTextContainer}>
           <Text style={styles.offerText}>30% Discount Only</Text>
           <Text style={styles.offerText}>Valid For Today!</Text>
-        </View>
+        </View> */}
       </View>
 
-      {/* Categories Section */}
       <FlatList
         data={CATEGORIES}
         renderItem={renderCategoryItem}
@@ -177,9 +205,31 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.specialOffersContainer}>
         <Text style={styles.sectionTitle}>Discount Guaranteed!</Text>
         <TouchableOpacity>
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text
+            style={styles.seeAllText}
+            onPress={() =>
+              navigation.navigate("MealsScreen", {
+                showAll: true,
+              })
+            }
+          >
+            See All
+          </Text>
         </TouchableOpacity>
       </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {meals.map((meal) => (
+          <TouchableOpacity
+            key={meal.id}
+            onPress={() =>
+              navigation.navigate("MealDetail", { mealId: meal.id })
+            }
+          >
+            {renderMealItem(meal)}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </ScrollView>
   );
 };
@@ -202,9 +252,6 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 10,
-  },
-  deliveryText: {
-    fontSize: 16,
   },
   locationText: {
     fontSize: 18,
@@ -234,9 +281,9 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
   },
   searchInput: {
+    flex: 1,
     marginLeft: 10,
     fontSize: 16,
-    flex: 1,
   },
   specialOffersContainer: {
     flexDirection: "row",
@@ -245,52 +292,73 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
   },
   seeAllText: {
-    fontSize: 14,
-    color: "#1e90ff",
+    color: "blue",
   },
   offerCard: {
-    backgroundColor: "#00cc66",
-    borderRadius: 20,
-    flexDirection: "row",
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 20,
+    borderRadius: 24,
+    overflow: "hidden",
+    marginVertical: 10,
   },
   offerImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 15,
+    width: "100%",
+    height: 200,
     resizeMode: "cover",
   },
   offerTextContainer: {
-    marginLeft: 15,
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 10,
+    borderRadius: 5,
   },
   offerText: {
-    fontSize: 20,
-    fontWeight: "bold",
     color: "white",
+    fontSize: 16,
   },
   categoriesContainer: {
-    paddingBottom: 20,
+    paddingVertical: 10,
   },
   categoryItem: {
     flex: 1,
+    margin: 5,
     alignItems: "center",
-    margin: 10,
+    justifyContent: "center",
   },
   categoryImage: {
     width: 40,
     height: 40,
     borderRadius: 5,
-    marginBottom: 5,
   },
   categoryTitle: {
     fontSize: 14,
+    textAlign: "center",
     fontWeight: "bold",
+  },
+  mealCard: {
+    backgroundColor: "#fff",
+    margin: 5,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 200,
+    height: 200,
+    borderRadius: 24,
+  },
+  mealImage: {
+    width: "100%",
+    height: "80%",
+    resizeMode: "cover",
+  },
+  mealTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 10,
   },
 });
 

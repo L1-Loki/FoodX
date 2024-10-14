@@ -13,6 +13,7 @@ import {
   Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { Picker } from "@react-native-picker/picker";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
 import { getDistance } from "geolib";
@@ -26,13 +27,15 @@ const AddMeal = ({ navigation, route }) => {
     title: "",
     distance: "",
     image: null,
-    items: "",
+    category: "Overview", // Giá trị mặc định
+    customCategory: "",
     price: "",
     location: null,
   });
   const [email, setEmail] = useState("Anonymous");
   const [currentLocation, setCurrentLocation] = useState(null);
   const [meals, setMeals] = useState([]);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
 
   const currentUser = auth.currentUser;
 
@@ -73,6 +76,7 @@ const AddMeal = ({ navigation, route }) => {
   };
 
   const handleChange = (name, value) => {
+    console.log(`Changing ${name} to ${value}`);
     setMeal((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -107,7 +111,7 @@ const AddMeal = ({ navigation, route }) => {
   };
 
   const handleAddMeal = async () => {
-    if (!meal.title || !meal.distance || !meal.items || !meal.price) {
+    if (!meal.title || !meal.distance || !meal.price || !meal.category) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
@@ -121,18 +125,27 @@ const AddMeal = ({ navigation, route }) => {
         await uploadBytes(imageRef, blob);
         imageUrl = await getDownloadURL(imageRef);
       }
-      if (onAddMeal) {
-        onAddMeal();
-      }
+
       const mealData = {
         title: meal.title,
         distance: meal.distance + " km",
         image: imageUrl,
-        items: Number(meal.items),
+        category: isCustomCategory
+          ? meal.customCategory
+          : meal.category || "Overview",
         price: Number(meal.price),
         email: email,
         location: meal.location,
       };
+      // Kiểm tra giá trị của mealData
+      console.log("Meal data before adding:", mealData);
+
+      const docRef = await addDoc(collection(db, "meals"), mealData);
+      console.log("Document written with ID: ", docRef.id);
+
+      if (typeof onAddMeal === "function") {
+        onAddMeal(docRef.id);
+      }
 
       await addDoc(collection(db, "meals"), mealData);
       Alert.alert("Success", "Meal added successfully!");
@@ -140,7 +153,8 @@ const AddMeal = ({ navigation, route }) => {
         title: "",
         distance: "",
         image: null,
-        items: "",
+        category: "Overview", // Đặt lại giá trị mặc định
+        customCategory: "",
         price: "",
         location: null,
       });
@@ -150,6 +164,9 @@ const AddMeal = ({ navigation, route }) => {
       Alert.alert("Error", "Failed to add meal!");
     }
   };
+  useEffect(() => {
+    console.log("Current meal state:", meal);
+  }, [meal]);
 
   const getCurrentLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -159,15 +176,12 @@ const AddMeal = ({ navigation, route }) => {
     }
 
     try {
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+      let location = await Location.getCurrentPositionAsync({});
       if (location) {
         setCurrentLocation(location);
       }
     } catch (error) {
-      console.error("Error getting location: ", error);
-      Alert.alert("Error", "Failed to get current location!");
+      console.log("Error getting location: ", error);
     }
   };
 
@@ -203,7 +217,7 @@ const AddMeal = ({ navigation, route }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.formContainer}>
+        <View style={styles.formContainer} key={meal.id}>
           {meal.image && (
             <Image
               source={{ uri: meal.image.uri }}
@@ -222,13 +236,38 @@ const AddMeal = ({ navigation, route }) => {
             value={meal.distance ? `${meal.distance} km` : ""}
             editable={false}
           />
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Number of Items"
             value={meal.items}
             onChangeText={(text) => handleChange("items", text)}
             keyboardType="numeric"
-          />
+          /> */}
+          <Picker
+            selectedValue={meal.category}
+            onValueChange={(itemValue) => {
+              console.log("Selected category:", itemValue);
+              handleChange("category", itemValue);
+            }}
+            style={styles.input}
+          >
+            <Picker.Item label="Select Category" value="" />
+            <Picker.Item label="Hamburger" value="Hamburger" />
+            <Picker.Item label="Pizza" value="Pizza" />
+            <Picker.Item label="Noodles" value="Noodles" />
+            <Picker.Item label="Meat" value="Meat" />
+            <Picker.Item label="Vegetables" value="Vegetables" />
+            <Picker.Item label="Khác" value="Other" />
+          </Picker>
+
+          {meal.category === "Other" && (
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập danh mục tùy chỉnh"
+              value={meal.customCategory}
+              onChangeText={(text) => handleChange("customCategory", text)}
+            />
+          )}
           <TextInput
             style={styles.input}
             placeholder="Price"

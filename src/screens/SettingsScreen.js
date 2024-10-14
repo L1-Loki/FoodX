@@ -26,18 +26,25 @@ const SettingsScreen = ({ navigation }) => {
   }, []);
 
   const handlePress = (setting) => {
-    if (setting.id === "6") {
-      signOut(auth).then(() => {
-        navigation.navigate("SignIn");
-      });
-    } else if (setting.id === "1") {
-      setIsDarkMode((prev) => !prev);
-    } else if (setting.id === "2") {
-      const newLang = language === "en" ? "vi" : "en";
-      switchLanguage(newLang);
-      setLanguage(newLang);
-    }else if(setting.id ==="5"){
-      navigation.navigate("FavoritesScreen");
+    switch (setting.id) {
+      case "1":
+        setIsDarkMode((prev) => !prev);
+        break;
+      case "2":
+        const newLang = language === "en" ? "vi" : "en";
+        switchLanguage(newLang);
+        setLanguage(newLang);
+        break;
+      case "5":
+        navigation.navigate("FavoritesScreen");
+        break;
+      case "6":
+        signOut(auth).then(() => {
+          navigation.navigate("SignIn");
+        });
+        break;
+      default:
+        break;
     }
   };
 
@@ -49,8 +56,6 @@ const SettingsScreen = ({ navigation }) => {
   const settingsData = [
     { id: "1", title: isDarkMode ? t("DarkMode") : t("LightMode") },
     { id: "2", title: t("Language") }, // Tiêu đề cho mục Ngôn ngữ
-    { id: "3", title: t("UpdateData") },
-    { id: "4", title: t("DeleteData") },
     { id: "5", title: t("Favorites") },
     { id: "6", title: t("Logout") },
   ];
@@ -111,26 +116,29 @@ const styles = StyleSheet.create({
   item: {
     padding: 15,
     marginVertical: 10,
-    borderRadius: 5,
+    borderRadius: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 5,
   },
   lightItem: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
+    elevation: 2,
   },
   darkItem: {
     backgroundColor: "#282c35",
+    elevation: 4, // Tăng độ nổi cho item tối
   },
   itemText: {
     fontSize: 18,
+    fontWeight: "600", // Làm nổi bật chữ
   },
   lightText: {
     color: "#000",
   },
   darkText: {
-    color: "#fff",
+    color: "#f0f0f0", // Màu chữ sáng cho giao diện tối
   },
   languageButtons: {
     flexDirection: "row",

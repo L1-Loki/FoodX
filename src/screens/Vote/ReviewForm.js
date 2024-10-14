@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import {
@@ -93,7 +94,6 @@ const ReviewForm = ({ route, navigation }) => {
 
       setRating(0);
       setReviewText("");
-    
     } catch (error) {
       console.error("Error adding review: ", error);
       Alert.alert("Error", "Failed to submit review.");
@@ -127,6 +127,7 @@ const ReviewForm = ({ route, navigation }) => {
       <View style={styles.sortContainer}>
         <FlatList
           data={[0, 1, 2, 3, 4, 5]}
+          showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => handleSortRating(item)}
@@ -163,6 +164,7 @@ const ReviewForm = ({ route, navigation }) => {
           )}
           keyExtractor={(item) => item.toString()}
           horizontal
+          showsHorizontalScrollIndicator={false}
         />
       </View>
 

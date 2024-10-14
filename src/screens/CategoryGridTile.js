@@ -1,24 +1,13 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ImageBackground,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 
-const CategoryGridTile = ({ title, image, color, onSelect }) => {
+const CategoryGridTile = ({ title, image, onSelect }) => {
   return (
     <TouchableOpacity style={styles.gridItem} onPress={onSelect}>
-      <ImageBackground
-        source={image}
-        style={styles.bgImage}
-        imageStyle={styles.imageStyle}
-      >
-        <View style={styles.innerContainer}>
-          <Text style={styles.title}>{title}</Text>
-        </View>
-      </ImageBackground>
+      <View style={styles.innerContainer}>
+        <Image source={image} style={styles.image} />
+        <Text style={styles.title}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -26,33 +15,25 @@ const CategoryGridTile = ({ title, image, color, onSelect }) => {
 const styles = StyleSheet.create({
   gridItem: {
     flex: 1,
-    padding: 2,
-    margin: 15,
-    height: 150,
-    borderRadius: 15,
-    overflow: "hidden",
-    elevation: 3, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.26,
-    shadowRadius: 6,
-  },
-  bgImage: {
-    flex: 1,
+    margin: 10,
+    height: 100,
     justifyContent: "center",
-  },
-  imageStyle: {
-    borderRadius: 15,
-  },
-  innerContainer: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Overlay mờ cho text
-    paddingVertical: 10,
     alignItems: "center",
   },
+  innerContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  image: {
+    width: 50,
+    height: 50,
+    marginBottom: 5,
+    borderRadius: 5,
+  },
   title: {
-    fontSize: 22,
+    fontSize: 14,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#000",
     textAlign: "center",
   },
 });

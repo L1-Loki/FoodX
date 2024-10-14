@@ -5,35 +5,61 @@ import CategoryGridTile from "./CategoryGridTile"; // Import your CategoryGridTi
 const CATEGORIES = [
   {
     id: "1",
-    title: "Italian",
-    image: require("../../assets/cupcakes.jpg"),
+    title: "Hamburger",
+    image: require("../../assets/hamburger_3300650.png"),
   },
-  {
-    id: "2",
-    title: "Quick Easy",
-    image: require("../../assets/pizza.jpg"),
-  },
+  { id: "2", title: "Pizza", image: require("../../assets/pizza_3595455.png") },
   {
     id: "3",
-    title: "Breakfast",
-    image: require("../../assets/fried-egg.jpg"),
+    title: "Noodles",
+    image: require("../../assets/noodles_1531382.png"),
   },
   {
     id: "4",
-    title: "Dessert",
-    image: require("../../assets/salad.jpg"),
+    title: "Meat",
+    image: require("../../assets/ham-leg_12480739.png"),
   },
   {
     id: "5",
-    title: "Vegan",
-    image: require("../../assets/banh_dau.jpg"),
+    title: "Vegetables",
+    image: require("../../assets/vegetables_4251938.png"),
   },
   {
     id: "6",
-    title: "Gluten Free",
-    image: require("../../assets/hamburger.jpg"),
+    title: "Dessert",
+    image: require("../../assets/piece-cake_10636732.png"),
   },
-  // Add more categories if needed
+  {
+    id: "7",
+    title: "Drink",
+    image: require("../../assets/cocktail_2039730.png"),
+  },
+  {
+    id: "8",
+    title: "Bread",
+    image: require("../..//assets/bakery_992710.png"),
+  },
+
+  {
+    id: "9",
+    title: "Rice",
+    image: require("../../assets/rice-bowl_4545214.png"),
+  },
+  {
+    id: "10",
+    title: "Cheese",
+    image: require("../../assets/cheese_590706.png"),
+  },
+  {
+    id: "11",
+    title: "Sushi",
+    image: require("../../assets/sushi_2252075.png"),
+  },
+  {
+    id: "12",
+    title: "Other",
+    image: require("../../assets/more.png"),
+  },
 ];
 
 const CategoriesScreen = ({ navigation }) => {
@@ -50,9 +76,17 @@ const CategoriesScreen = ({ navigation }) => {
         title={itemData.item.title}
         image={itemData.item.image}
         onSelect={() => {
-          navigation.navigate("Meals", {
-            categoryId: itemData.item.id,
-          });
+          if (itemData.item.id === "12") {
+            navigation.navigate("MealsScreen", {
+              showAll: true,
+            });
+          } else {
+            navigation.navigate("MealsScreen", {
+              categoryTitle: itemData.item.title,
+              categoryId: itemData.item.id,
+              showAll: false,
+            });
+          }
         }}
       />
     );
@@ -63,8 +97,9 @@ const CategoriesScreen = ({ navigation }) => {
       <FlatList
         data={CATEGORIES}
         renderItem={renderGridItem}
-        numColumns={2}
+        numColumns={4}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
@@ -73,10 +108,14 @@ const CategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    paddingTop: 40, 
   },
   container: {
-    paddingVertical: 10,
+    width: 40,
+    height: 40,
+  },
+  listContainer: {
+    paddingHorizontal: 10,
+    paddingTop: 50,
   },
 });
 

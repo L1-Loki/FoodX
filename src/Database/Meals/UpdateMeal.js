@@ -13,6 +13,7 @@ import {
   Platform,
 } from "react-native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { Picker } from "@react-native-picker/picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "../../../firebaseConfig"; // Import storage từ Firebase
 import * as ImagePicker from "expo-image-picker";
@@ -26,12 +27,15 @@ const UpdateMeal = ({ route, navigation }) => {
     title: "",
     distance: "",
     image: "",
-    items: "",
+    category: "Overview", // Giá trị mặc định
+    customCategory: "",
     price: "",
     location: { latitude: 10.9821, longitude: 106.6459 }, // Thêm trường location
   });
   const [userLocation, setUserLocation] = useState(null);
   const [email, setEmail] = useState("Anonymous");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+
   const currentUser = auth.currentUser;
 
   // Lấy dữ liệu meal từ Firestore và hiển thị
@@ -136,13 +140,20 @@ const UpdateMeal = ({ route, navigation }) => {
 
   // Hàm cập nhật dữ liệu meal
   const handleUpdateMeal = async () => {
+    if (!meal.title || !meal.distance || !meal.price) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
     try {
       const mealRef = doc(db, "meals", mealId);
       const updatedData = {
         title: meal.title,
         distance: meal.distance,
         image: meal.image,
-        items: Number(meal.items),
+        category: isCustomCategory
+          ? meal.customCategory
+          : meal.category || "Overview",
         price: Number(meal.price),
         email: email,
         location: meal.location, // Thêm location vào dữ liệu cập nhật
@@ -227,13 +238,38 @@ const UpdateMeal = ({ route, navigation }) => {
             value={meal.distance}
             editable={false} // Không cho phép chỉnh sửa
           />
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Number of Items"
             keyboardType="numeric"
             value={meal.items}
             onChangeText={(text) => handleChange("items", text)}
-          />
+          /> */}
+          <Picker
+            selectedValue={meal.category}
+            onValueChange={(itemValue) => {
+              console.log("Selected category:", itemValue);
+              handleChange("category", itemValue);
+            }}
+            style={styles.input}
+          >
+            <Picker.Item label="Selected category" value="" />
+            <Picker.Item label="Hamburger" value="Hamburger" />
+            <Picker.Item label="Pizza" value="Pizza" />
+            <Picker.Item label="Noodles" value="Noodles" />
+            <Picker.Item label="Meat" value="Meat" />
+            <Picker.Item label="Vegetables" value="Vegetables" />
+            <Picker.Item label="Khác" value="Other" />
+          </Picker>
+
+          {meal.category === "Other" && (
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập danh mục tùy chỉnh"
+              value={meal.customCategory}
+              onChangeText={(text) => handleChange("customCategory", text)}
+            />
+          )}
           <TextInput
             style={styles.input}
             placeholder="Price"

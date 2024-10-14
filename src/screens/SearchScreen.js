@@ -11,8 +11,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { AntDesign, FontAwesome, Entypo } from "@expo/vector-icons";
 import {
   collection,
   getDocs,
@@ -218,9 +217,10 @@ const SearchScreen = ({ navigation, route }) => {
         />
         <View style={styles.mealDetails}>
           <Text style={styles.mealTitle}>{item.title}</Text>
-          <Text style={styles.mealMeta}>
-            {item.items} items | {item.distance}
-          </Text>
+          <View style={styles.location}>
+            <Entypo name="location-pin" size={14} color="#555" />
+            <Text style={styles.mealMeta}>{item.distance}</Text>
+          </View>
           <Text style={styles.mealPrice}>${item.price}</Text>
           <View style={styles.starsContainer}>{renderStars(item.rating)}</View>
         </View>
@@ -427,14 +427,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   mealMeta: {
-    color: "#666",
+    fontSize: 14,
+    color: "#555",
   },
-
+  location: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
   mealPrice: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 5,
+    fontWeight: "600",
     color: "green",
+    marginBottom: 5,
   },
   heartIcon: {
     justifyContent: "center", // Căn giữa theo chiều dọc trong container
