@@ -56,6 +56,12 @@ const AddMeal = ({ navigation, route }) => {
     getCurrentLocation(); // Lấy vị trí hiện tại ngay khi tải
   }, [currentUser]);
 
+  useEffect(() => {
+    navigation.setOptions({
+      onAddMeal: handleAddMeal, // Đặt hàm handleAddMeal vào trong options
+    });
+  }, [navigation]);
+
   const fetchMeals = async () => {
     const mealsCollection = collection(db, "meals");
     const mealsSnapshot = await getDocs(mealsCollection);
@@ -153,7 +159,9 @@ const AddMeal = ({ navigation, route }) => {
     }
 
     try {
-      let location = await Location.getCurrentPositionAsync({});
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
       if (location) {
         setCurrentLocation(location);
       }
