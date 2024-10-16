@@ -52,7 +52,6 @@ const UpdateMeal = ({ route, navigation }) => {
             title: mealData.title,
             distance: mealData.distance,
             image: mealData.image || "",
-            items: mealData.items.toString(),
             price: mealData.price.toString(),
             location: mealData.location || {
               latitude: 10.9821,
@@ -130,7 +129,6 @@ const UpdateMeal = ({ route, navigation }) => {
           image: downloadUrl,
         }));
 
-        Alert.alert("Success", "Image uploaded successfully!");
       } catch (error) {
         console.error("Error uploading image: ", error);
         Alert.alert("Error", "Failed to upload image.");
@@ -156,7 +154,7 @@ const UpdateMeal = ({ route, navigation }) => {
           : meal.category || "Overview",
         price: Number(meal.price),
         email: email,
-        location: meal.location, // Thêm location vào dữ liệu cập nhật
+        location: meal.location, 
       };
 
       await updateDoc(mealRef, updatedData);
@@ -253,12 +251,18 @@ const UpdateMeal = ({ route, navigation }) => {
             }}
             style={styles.input}
           >
-            <Picker.Item label="Selected category" value="" />
+            <Picker.Item label="Select Category" value="" />
             <Picker.Item label="Hamburger" value="Hamburger" />
             <Picker.Item label="Pizza" value="Pizza" />
             <Picker.Item label="Noodles" value="Noodles" />
             <Picker.Item label="Meat" value="Meat" />
             <Picker.Item label="Vegetables" value="Vegetables" />
+            <Picker.Item label="Dessert" value="Dessert" />
+            <Picker.Item label="Drink" value="Drink" />
+            <Picker.Item label="Bread" value="Bread" />
+            <Picker.Item label="Rice" value="Rice" />
+            <Picker.Item label="Cheese" value="Cheese" />
+            <Picker.Item label="Sushi" value="Sushi" />
             <Picker.Item label="Khác" value="Other" />
           </Picker>
 
@@ -336,7 +340,7 @@ const styles = StyleSheet.create({
     color: "#777",
   },
   button: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#4CAF50",
     borderRadius: 10,
     padding: 15,
     alignItems: "center",

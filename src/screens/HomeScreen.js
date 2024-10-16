@@ -11,7 +11,16 @@ import {
   Alert,
 } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
-import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  getFirestore,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 import { db, auth } from "../../firebaseConfig";
 
 const CATEGORIES = [
@@ -55,10 +64,19 @@ const HomeScreen = ({ navigation }) => {
   const [error, setError] = useState("");
   const [meals, setMeals] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
+
   const user = auth.currentUser;
-  const userId = user.email; // Thay thế bằng userId hợp lệ từ Firebase Auth hoặc từ context
+  const userId = user.email;
 
   useEffect(() => {
+    const db = getFirestore();
+
+    // Lấy thông tin người dùng
     const fetchUserInfo = async () => {
       try {
         const userDoc = await getDoc(doc(db, "users", userId));
@@ -66,36 +84,70 @@ const HomeScreen = ({ navigation }) => {
           const data = userDoc.data();
           setUserInfo({
             fullName: data.fullName || "No name provided",
-            imageUri:
-              data.imageUri ||
-              "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
+            imageUri: data.imageUri || "https://via.placeholder.com/80",
           });
         } else {
-          console.log("No such document!");
-          setError("User not found.");
+          console.log("Không có tài liệu nào!");
+          setError("Người dùng không tìm thấy.");
         }
       } catch (err) {
-        console.error("Error fetching user info:", err);
-        setError("Error fetching user info. Please try again later.");
+        console.error("Lỗi thông tin người dùng:", err);
+        setError("Lỗi thông tin người dùng. Vui lòng thử lại sau.");
       }
     };
 
-    const fetchMeals = async () => {
+    // Lấy thông báo chưa đọc
+    const fetchNotifications = async () => {
       try {
-        const mealCollection = collection(db, "meals");
-        const mealSnapshot = await getDocs(mealCollection);
-        const mealList = mealSnapshot.docs.map((doc) => ({
+        const notificationsSnapshot = await getDocs(
+          query(
+            collection(db, "notifications"),
+            where("followerId", "==", userId)
+          )
+        );
+
+        const allNotifications = notificationsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setMeals(mealList);
-      } catch (error) {
-        console.error("Error fetching meals:", error);
+
+        setNotifications(allNotifications); // Cập nhật state với tất cả thông báo
+      } catch (err) {
+        console.error("Lỗi lấy thông báo:", err);
       }
     };
 
-    fetchMeals();
+    // Lắng nghe thay đổi món ăn
+    const unsubscribeMeals = onSnapshot(collection(db, "meals"), (snapshot) => {
+      const mealList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMeals(mealList);
+    });
+
+    // Lắng nghe thông báo
+    const unsubscribeNotifications = onSnapshot(
+      query(collection(db, "notifications"), where("followerId", "==", userId)),
+      (snapshot) => {
+        const allNotifications = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setNotifications(allNotifications); // Cập nhật state với tất cả thông báo
+        console.log("Cập nhật thông báo:", allNotifications.length);
+      }
+    );
+
+    // Gọi các hàm để lấy dữ liệu
     fetchUserInfo();
+    fetchNotifications();
+
+    // Hủy lắng nghe khi component unmount
+    return () => {
+      unsubscribeMeals();
+      unsubscribeNotifications();
+    };
   }, [userId]);
 
   const handleCategorySelect = (category) => {
@@ -119,7 +171,6 @@ const HomeScreen = ({ navigation }) => {
           if (itemData.item.title === "More") {
             navigation.navigate("Categories");
           } else {
-            // Chuyển hướng đến màn hình hiển thị món ăn với danh mục đã chọn
             navigation.navigate("MealsScreen", {
               categoryTitle: itemData.item.title,
             });
@@ -148,9 +199,7 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.userEditContainer}>
           <Image
             source={{
-              uri:
-                userInfo.imageUri ||
-                "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
+              uri: userInfo.imageUri || "https://via.placeholder.com/80",
             }}
             style={styles.avatar}
           />
@@ -159,7 +208,18 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
         <View style={styles.headerRight}>
-          <Feather name="bell" size={24} color="black" />
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Notification", { followerId: userId });
+            }}
+          >
+            <Feather name="bell" size={24} color="black" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -180,9 +240,7 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity> */}
       </View>
-      <View
-        style={[styles.offerCard, { backgroundColor: theme.colors.primary }]}
-      >
+      <View style={[styles.offerCard]}>
         <Image
           source={require("../../assets/hamburger.jpg")}
           style={styles.offerImage}
@@ -345,6 +403,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    elevation: 5,
     width: 200,
     height: 200,
     borderRadius: 24,
@@ -359,6 +418,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 10,
+  },
+  headerRight: {
+    position: "relative",
+    marginRight: 10, // Thêm khoảng cách bên phải
+  },
+  badge: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "#ff3b1f",
+    borderRadius: 10,
+    padding: 5,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
 

@@ -18,8 +18,11 @@ import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
 import { getDistance } from "geolib";
 import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
+import { LogBox } from "react-native";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, auth } from "../../../firebaseConfig";
+
+LogBox.ignoreLogs(['Each child in a list should have a unique "key" prop']);
 
 const AddMeal = ({ navigation, route }) => {
   const { onAddMeal } = route.params;
@@ -128,7 +131,7 @@ const AddMeal = ({ navigation, route }) => {
 
       const mealData = {
         title: meal.title,
-        distance: meal.distance + " km",
+        distance: `${meal.distance} km`,
         image: imageUrl,
         category: isCustomCategory
           ? meal.customCategory
@@ -137,23 +140,46 @@ const AddMeal = ({ navigation, route }) => {
         email: email,
         location: meal.location,
       };
+
       // Kiểm tra giá trị của mealData
       console.log("Meal data before adding:", mealData);
 
+      // Thêm món ăn vào Firestore
       const docRef = await addDoc(collection(db, "meals"), mealData);
       console.log("Document written with ID: ", docRef.id);
+
+      // Lấy danh sách người theo dõi
+      const userDoc = await getDoc(doc(db, "users", email));
+      if (userDoc.exists()) {
+        const followers = userDoc.data().followersList || [];
+        if (Array.isArray(followers)) {
+          const notificationsRef = collection(db, "notifications");
+          const fullName = userDoc.data().fullName || [];
+
+          for (const follower of followers) {
+            await addDoc(notificationsRef, {
+              followerId: follower,
+              mealId: docRef.id,
+              message: `${fullName} đã thêm món ăn mới: ${meal.title}!`,
+              timestamp: new Date(), // Kiểm tra đúng loại dữ liệu ở đây
+            });
+          }
+          console.log("Notifications sent for followers.");
+        } else {
+          console.error("Followers is not an array:", followers);
+        }
+      }
 
       if (typeof onAddMeal === "function") {
         onAddMeal(docRef.id);
       }
 
-      await addDoc(collection(db, "meals"), mealData);
       Alert.alert("Success", "Meal added successfully!");
       setMeal({
         title: "",
         distance: "",
         image: null,
-        category: "Overview", // Đặt lại giá trị mặc định
+        category: "Overview",
         customCategory: "",
         price: "",
         location: null,
@@ -164,6 +190,7 @@ const AddMeal = ({ navigation, route }) => {
       Alert.alert("Error", "Failed to add meal!");
     }
   };
+
   useEffect(() => {
     console.log("Current meal state:", meal);
   }, [meal]);
@@ -236,13 +263,6 @@ const AddMeal = ({ navigation, route }) => {
             value={meal.distance ? `${meal.distance} km` : ""}
             editable={false}
           />
-          {/* <TextInput
-            style={styles.input}
-            placeholder="Number of Items"
-            value={meal.items}
-            onChangeText={(text) => handleChange("items", text)}
-            keyboardType="numeric"
-          /> */}
           <Picker
             selectedValue={meal.category}
             onValueChange={(itemValue) => {
@@ -257,6 +277,12 @@ const AddMeal = ({ navigation, route }) => {
             <Picker.Item label="Noodles" value="Noodles" />
             <Picker.Item label="Meat" value="Meat" />
             <Picker.Item label="Vegetables" value="Vegetables" />
+            <Picker.Item label="Dessert" value="Dessert" />
+            <Picker.Item label="Drink" value="Drink" />
+            <Picker.Item label="Bread" value="Bread" />
+            <Picker.Item label="Rice" value="Rice" />
+            <Picker.Item label="Cheese" value="Cheese" />
+            <Picker.Item label="Sushi" value="Sushi" />
             <Picker.Item label="Khác" value="Other" />
           </Picker>
 
@@ -286,12 +312,12 @@ const AddMeal = ({ navigation, route }) => {
           <MapView
             style={styles.map}
             initialRegion={{
-              latitude: 10.9821, // Mặc định là latitude của Thủ Dầu Một
-              longitude: 106.6459, // Mặc định là longitude của Thủ Dầu Một
+              latitude: 10.9821,
+              longitude: 106.6459,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
-            onPress={handleMapPress} // Cập nhật vị trí khi nhấn vào bản đồ
+            onPress={handleMapPress}
           >
             {meal.location && (
               <Marker
@@ -316,10 +342,6 @@ const AddMeal = ({ navigation, route }) => {
           <TouchableOpacity style={styles.addButton} onPress={handleAddMeal}>
             <Text style={styles.buttonText}>Add Meal</Text>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity style={styles.addButton} onPress={handleOpenMap}>
-            <Text style={styles.buttonText}>Open Map</Text>
-          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -348,7 +370,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   imageButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#4CAF50",
     alignItems: "center",
     padding: 15,
     borderRadius: 10,

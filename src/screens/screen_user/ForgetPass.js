@@ -54,13 +54,13 @@ export default function ForgotPasswordScreen({ navigation }) {
         mode="outlined"
       />
 
-      <Button
+      <TouchableOpacity
         mode="contained"
         style={styles.resetButton}
         onPress={handleForgotPassword}
       >
-        Send Reset Email
-      </Button>
+        <Text style={styles.submitButtonText}>Send</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => navigation.goBack()}
@@ -92,8 +92,14 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     backgroundColor: "#00c853",
-    paddingVertical: 10,
+    padding: 15,
+    borderRadius: 24,
+    alignItems: "center",
     marginBottom: 20,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 18,
   },
   errorText: {
     color: "red",

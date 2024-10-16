@@ -5,8 +5,8 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { IconButton } from "react-native-paper";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
+// import * as Google from "expo-auth-session/providers/google";
+// import * as WebBrowser from "expo-web-browser";
 
 import { Checkbox } from "react-native-paper";
 // import { signInWithGoogle } from "../../API/GoogleSignin"; // Import hàm đăng nhập Google
@@ -20,12 +20,12 @@ export default function SignInScreen({ navigation }) {
   const [error, setError] = useState("");
 
   const [userInfor, setUserInfor] = React.useState(null);
-  const [request, response, promtAsyns] = Google.useAuthRequest({
-    androidClientId:
-      "412206916441-lccg0k2nls2k3odj0cm0r38apdppg5fv.apps.googleusercontent.com",
-    webClientId:
-      "412206916441-vpqm8doc32a3t47o1esfdqj8d4lcmsfp.apps.googleusercontent.com",
-  });
+  // const [request, response, promtAsyns] = Google.useAuthRequest({
+  //   androidClientId:
+  //     "412206916441-lccg0k2nls2k3odj0cm0r38apdppg5fv.apps.googleusercontent.com",
+  //   webClientId:
+  //     "412206916441-vpqm8doc32a3t47o1esfdqj8d4lcmsfp.apps.googleusercontent.com",
+  // });
   const [isRememberMe, setIsRememberMe] = useState(false);
 
   const handleSignIn = async () => {
@@ -65,11 +65,11 @@ export default function SignInScreen({ navigation }) {
           ]
         );
       }
-    } catch (err) {
-      console.error("Lỗi đăng nhập:", err.code); // In mã lỗi ra console
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error.code); // In mã lỗi ra console
 
       // Kiểm tra mã lỗi và hiển thị thông báo tương ứng
-      switch (err.code) {
+      switch (error.code) {
         case "auth/invalid-email":
           setError("Invalid email format. Please check your email.");
           break;
@@ -104,19 +104,21 @@ export default function SignInScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Let’s you in</Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
       <TextInput
         label="Email"
         value={email}
         onChangeText={setEmail}
+        accessibilityLabel="Email"
         style={styles.input}
         keyboardType="email-address"
+        testID="email-input"
         autoCapitalize="none"
         mode="outlined"
       />
       <TextInput
         label="Password"
+        testID="password-input"
+        accessibilityLabel="Password"
         value={password}
         onChangeText={setPassword}
         style={styles.input}
@@ -138,13 +140,15 @@ export default function SignInScreen({ navigation }) {
         </View>
       </View>
 
-      <Button
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <TouchableOpacity
         mode="contained"
         style={styles.loginButton}
         onPress={handleSignIn}
       >
-        Login
-      </Button>
+        <Text style={styles.submitButtonText}>Login</Text>
+      </TouchableOpacity>
 
       {/* <Text style={styles.orText}>or</Text>
 
@@ -207,10 +211,16 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#00c853",
-    paddingVertical: 10,
+    padding: 15,
+    borderRadius: 24,
+    alignItems: "center",
     marginBottom: 20,
   },
-  orText: {
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 18,
+  },
+  errorText: {
     textAlign: "center",
     marginVertical: 20,
     color: "#999",

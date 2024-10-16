@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { TextInput, Button, Checkbox } from "react-native-paper";
 import { auth, db } from "../../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
@@ -14,11 +14,54 @@ export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState(""); // State để lưu lỗi nếu có
+  const [error, setError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("");
+  const [strengthColor, setStrengthColor] = useState("gray"); // Màu mặc định
+
+  const checkPasswordStrength = (password) => {
+    const strongPassword =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/; // Mật khẩu mạnh
+    const mediumPassword = /^(?=.*[a-z])(?=.*\d)[A-Za-z\d]{6,}$/; // Mật khẩu trung bình
+
+    if (strongPassword.test(password)) {
+      setPasswordStrength("Mạnh");
+      setStrengthColor("green"); // Màu xanh cho mật khẩu mạnh
+    } else if (mediumPassword.test(password)) {
+      setPasswordStrength("Trung bình.");
+      setStrengthColor("orange"); // Màu vàng cho mật khẩu trung bình
+    } else {
+      setPasswordStrength(
+        "Mật khẩu yếu. Vui lòng sử dụng ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+      );
+      setStrengthColor("red"); // Màu đỏ cho mật khẩu yếu
+    }
+  };
 
   const handleSignUp = async () => {
     try {
+      if (
+        !email ||
+        !fullName ||
+        !phoneNumber ||
+        !password ||
+        !confirmPassword
+      ) {
+        setError("Vui lòng điền đầy đủ thông tin.");
+        return;
+      }
+      // So sánh mật khẩu và mật khẩu xác nhận
+      if (password !== confirmPassword) {
+        setError("Mật khẩu và mật khẩu xác nhận không khớp.");
+        return;
+      }
+      // Kiểm tra độ mạnh của mật khẩu
+      if (passwordStrength !== "Mạnh") {
+        setError("Vui lòng chọn mật khẩu mạnh để tiếp tục.");
+        return;
+      }
+
       // Đăng ký người dùng với email và password
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -31,24 +74,24 @@ export default function SignUpScreen({ navigation }) {
       await sendEmailVerification(user);
       alert("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận.");
 
-      // Lưu thông tin người dùng vào Firestore, sử dụng email thay vì UID
+      // Lưu thông tin người dùng vào Firestore
       await setDoc(doc(db, "users", user.email), {
         fullName,
         phoneNumber,
-        email: user.email, // Lưu email của người dùng
+        email: user.email,
       });
 
-      // Đăng xuất người dùng để buộc họ xác thực email trước khi đăng nhập
+      // Đăng xuất người dùng
       await signOut(auth);
 
       // Điều hướng đến màn hình đăng nhập
       navigation.navigate("SignIn");
     } catch (error) {
-      console.error("Error during sign up:", error.message);
+      console.error("Lỗi trong quá trình đăng ký:", error.message);
 
       // Kiểm tra mã lỗi và hiển thị thông báo tương ứng
       if (error.code === "auth/email-already-in-use") {
-        setError("Email đã được sử dụng. Vui lòng sử dụng email khác.");
+        Alert.alert("Email đã được sử dụng. Vui lòng sử dụng email khác.");
       } else {
         setError("Đăng ký thất bại. Vui lòng thử lại.");
       }
@@ -57,9 +100,9 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create a new account</Text>
+      <Text style={styles.title}>Register account</Text>
       <TextInput
-        label="Phone number"
+        label="Phone"
         mode="outlined"
         style={styles.input}
         value={phoneNumber}
@@ -75,7 +118,7 @@ export default function SignUpScreen({ navigation }) {
         keyboardType="email-address"
       />
       <TextInput
-        label="Name"
+        label="Họ và tên"
         mode="outlined"
         style={styles.input}
         value={fullName}
@@ -86,26 +129,43 @@ export default function SignUpScreen({ navigation }) {
         mode="outlined"
         style={styles.input}
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          checkPasswordStrength(text); // Kiểm tra độ mạnh mật khẩu
+        }}
         secureTextEntry
       />
+      <TextInput
+        label="Confirm password"
+        mode="outlined"
+        style={styles.input}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
+      <View style={styles.strengthBarContainer}>
+        <View
+          style={[styles.strengthBar, { backgroundColor: strengthColor }]}
+        />
+      </View>
+      <Text style={styles.passwordStrength}>{passwordStrength}</Text>
       <View style={styles.rememberMeContainer}>
         <Checkbox
           status={rememberMe ? "checked" : "unchecked"}
           onPress={() => setRememberMe(!rememberMe)}
         />
-        <Text>Remember</Text>
+        <Text>Remember me</Text>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Button
+      <TouchableOpacity
         mode="contained"
         style={styles.signUpButton}
         onPress={handleSignUp}
       >
-        Register
-      </Button>
+         <Text style={styles.submitButtonText}>Resgister</Text>
+      </TouchableOpacity>
       <View style={styles.footer}>
-        <Text>Already have an account? </Text>
+        <Text>You already have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
           <Text style={styles.signInText}>Login</Text>
         </TouchableOpacity>
@@ -129,6 +189,22 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 15,
   },
+  strengthBarContainer: {
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "lightgray",
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  strengthBar: {
+    height: "100%",
+    width: "100%",
+  },
+  passwordStrength: {
+    color: "black",
+    textAlign: "center",
+    marginBottom: 10,
+  },
   rememberMeContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -136,7 +212,14 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     backgroundColor: "#00c853",
-    paddingVertical: 10,
+    padding: 15,
+    borderRadius: 24,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 18,
   },
   footer: {
     flexDirection: "row",

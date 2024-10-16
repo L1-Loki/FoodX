@@ -179,7 +179,7 @@ const UserProfile = ({ route }) => {
         }));
       }
     } catch (error) {
-      console.error("Error updating follow status: ", error);
+      console.error("Lỗi cập nhật trạng thái theo dõi: ", error);
     }
   };
 
@@ -204,7 +204,7 @@ const UserProfile = ({ route }) => {
 
       console.log("Post count updated successfully.");
     } catch (error) {
-      console.error("Error adding post: ", error);
+      console.error("Lỗi khi thêm bài viết: ", error);
     }
   };
 
@@ -222,7 +222,7 @@ const UserProfile = ({ route }) => {
 
       return postCount;
     } catch (error) {
-      console.error("Error getting post count: ", error);
+      console.error("Lỗi khi đếm số bài viết: ", error);
       return 0;
     }
   };
@@ -295,8 +295,8 @@ const UserProfile = ({ route }) => {
 
       console.log("Meal deleted successfully.");
     } catch (error) {
-      console.error("Error deleting meal: ", error); // Ghi log lỗi để theo dõi
-      Alert.alert("Error", "Failed to delete meal.");
+      console.error("Lỗi xóa bữa ăn: ", error); // Ghi log lỗi để theo dõi
+      Alert.alert("Lỗi", "Không thể xóa bữa ăn.");
     }
   };
 
@@ -344,26 +344,29 @@ const UserProfile = ({ route }) => {
                 </Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={styles.buttonOutline}
-              onPress={() => {
-                navigation.navigate("AddMeal", {
-                  onAddMeal: async (newMealData) => {
-                    await handleAddPost(newMealData);
-                  },
-                });
-              }}
-            >
-              <Text style={styles.buttonOutlineText}>Post</Text>
-            </TouchableOpacity>
 
             {isCurrentUser && (
-              <TouchableOpacity
-                style={styles.buttonOutline}
-                onPress={handleEditProfile}
-              >
-                <Text style={styles.buttonOutlineText}>Edit Profile</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={styles.buttonOutline}
+                  onPress={() => {
+                    navigation.navigate("AddMeal", {
+                      onAddMeal: async (newMealData) => {
+                        await handleAddPost(newMealData);
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.buttonOutlineText}>Post</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.buttonOutline}
+                  onPress={handleEditProfile}
+                >
+                  <Text style={styles.buttonOutlineText}>Edit Profile</Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         </View>

@@ -16,6 +16,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   addDoc,
   onSnapshot,
 } from "firebase/firestore";
@@ -31,37 +32,23 @@ const ReviewForm = ({ route, navigation }) => {
   const [userFullName, setUserFullName] = useState(""); // State to store user's fullName
 
   useEffect(() => {
-    // Fetch meal creator's fullName
-    const fetchMealCreator = async () => {
-      try {
-        const mealDocRef = doc(db, "meals", mealId);
-        const mealDoc = await getDoc(mealDocRef);
-        console.log(email);
-      } catch (error) {
-        console.error("Error fetching meal creator: ", error);
-      }
-    };
-
-    // Fetch the logged-in user's fullName using their email
+    // Fetch thông tin của người dùng hiện tại từ Firestore bằng email
     const fetchUserFullName = async () => {
       try {
-        const userDocRef = doc(db, "users", email); // Fetch by email
+        const userDocRef = doc(db, "users", email);
         const userDoc = await getDoc(userDocRef);
-        console.log(userDocRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUserFullName(userData.fullName); // Set the user's fullName
+          setUserFullName(userData.fullName);
         } else {
-          console.log("No such user document!");
+          console.log("Không tìm thấy tài liệu người dùng!");
         }
       } catch (error) {
-        console.error("Error fetching user information: ", error);
+        console.error("Lỗi khi tải thông tin người dùng: ", error);
       }
     };
 
-    fetchMealCreator();
-    fetchUserFullName();
-
+    // Lắng nghe cập nhật từ Firestore cho review của bữa ăn
     const reviewsCollectionRef = collection(db, "meals", mealId, "reviews");
     const unsubscribe = onSnapshot(reviewsCollectionRef, (snapshot) => {
       const fetchedReviews = snapshot.docs.map((doc) => ({
@@ -71,18 +58,22 @@ const ReviewForm = ({ route, navigation }) => {
       setReviews(fetchedReviews);
     });
 
+    // Gọi hàm fetch user info
+    fetchUserFullName();
+
+    // Hủy đăng ký listener khi component bị hủy
     return () => unsubscribe();
   }, [mealId, email]);
 
   const submitReview = async () => {
     if (rating === 0) {
-      Alert.alert("Error", "Please select a rating.");
+      Alert.alert("Lỗi", "Vui lòng chọn đánh giá.");
       return;
     }
 
     const newReview = {
-      email: email || "", // Save email instead of userId
-      fullName: userFullName || "", // Save user's fullName
+      email: email || "",
+      fullName: userFullName || "",
       rating,
       reviewText: reviewText || "",
       date: new Date().toLocaleString(),
@@ -90,13 +81,24 @@ const ReviewForm = ({ route, navigation }) => {
 
     try {
       const reviewsCollection = collection(db, "meals", mealId, "reviews");
-      await addDoc(reviewsCollection, newReview);
+      const userReview = reviews.find((review) => review.email === email);
+
+      if (userReview) {
+        // Cập nhật review đã có
+        const reviewDocRef = doc(reviewsCollection, userReview.id);
+        await setDoc(reviewDocRef, newReview);
+        Alert.alert("Thành công", "Đánh giá của bạn đã được cập nhật.");
+      } else {
+        // Thêm mới review
+        await addDoc(reviewsCollection, newReview);
+        Alert.alert("Thành công", "Đánh giá của bạn đã được gửi.");
+      }
 
       setRating(0);
       setReviewText("");
     } catch (error) {
-      console.error("Error adding review: ", error);
-      Alert.alert("Error", "Failed to submit review.");
+      console.error("Lỗi khi gửi đánh giá: ", error);
+      Alert.alert("Lỗi", "Không thể gửi đánh giá.");
     }
   };
 
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
   input: {
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 24,
     padding: 10,
     marginBottom: 20,
     height: 100,
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: "#007BFF",
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 24,
     alignItems: "center",
     marginBottom: 20,
   },
@@ -250,11 +252,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   reviewItem: {
-    padding: 10,
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     backgroundColor: "#fff",
-    borderRadius: 5,
+    borderRadius: 24,
     marginBottom: 10,
   },
   reviewUser: {

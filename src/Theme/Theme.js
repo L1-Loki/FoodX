@@ -1,27 +1,34 @@
-// themes.js
-import { DefaultTheme, DarkTheme } from "react-native-paper";
-
-export const themes = {
-  light: {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: "#6200ee", // Màu chủ đề sáng
-      background: "#ffffff", // Nền sáng
-      surface: "#ffffff",
-      text: "#000000",
-      // Thêm các màu khác nếu cần
-    },
-  },
-  dark: {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      primary: "#bb86fc", // Màu chủ đề tối
-      background: "#181a20", // Màu nền tối mới
-      surface: "#282c35", // Màu surface cho tối
-      text: "#ffffff",
-      // Thêm các màu khác nếu cần
-    },
+// theme.js
+const lightTheme = {
+  background: "#f5f5f5",
+  itemBackground: "#ffffff",
+  textColor: "#000",
+  itemShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2,
   },
 };
+
+const darkTheme = {
+  background: "#181a20",
+  itemBackground: "#282c35",
+  textColor: "#f0f0f0",
+  itemShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+};
+
+// Xuất đối tượng theme mặc định
+const theme = {
+  lightTheme,
+  darkTheme,
+};
+
+export default theme;

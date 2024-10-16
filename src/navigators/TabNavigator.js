@@ -13,18 +13,13 @@ const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ color, size }) => {
-        let iconName;
-        if (route.name === "Home") {
-          iconName = "home";
-        } else if (route.name === "Categories") {
-          iconName = "th-list";
-        } else if (route.name === "Favorites") {
-          iconName = "heart";
-        } else if (route.name === "Settings") {
-          iconName = "gear";
-        } else if (route.name === "UserProfile") {
-          iconName = "user";
-        }
+        const iconMap = {
+          Home: "home",
+          Categories: "th-list",
+          Settings: "gear",
+          UserProfile: "user",
+        };
+        const iconName = iconMap[route.name]; // Lấy icon từ map dựa trên tên route
         return <FontAwesome name={iconName} size={size} color={color} />;
       },
     })}
@@ -47,8 +42,7 @@ const TabNavigator = () => (
     <Tab.Screen
       name="UserProfile"
       component={UserProfile}
-      options={{ headerShown: false }}
-
+      options={{ title: "Profile", headerShown: false }}
     />
   </Tab.Navigator>
 );

@@ -66,7 +66,7 @@ const SearchScreen = ({ navigation, route }) => {
 
       setMeals(mealList);
     } catch (error) {
-      console.error("Error fetching meals: ", error);
+      console.error("Lỗi khi tìm kiếm: ", error);
       setError(error.message);
     }
   };
@@ -78,7 +78,7 @@ const SearchScreen = ({ navigation, route }) => {
       const favoritesSet = new Set(favoritesSnapshot.docs.map((doc) => doc.id));
       setFavorites(favoritesSet);
     } catch (error) {
-      console.error("Error fetching favorites: ", error);
+      console.error("Lỗi mục yêu thích: ", error);
     }
   };
 
@@ -123,7 +123,7 @@ const SearchScreen = ({ navigation, route }) => {
       }));
       setUsers(userList);
     } catch (error) {
-      console.error("Error fetching users by fullName: ", error);
+      console.error("Lỗi tìm người dùng theo fullName: ", error);
       setError(error.message);
     }
   };
@@ -168,8 +168,8 @@ const SearchScreen = ({ navigation, route }) => {
         setFavorites((prev) => new Set(prev).add(meal.id));
       }
     } catch (error) {
-      console.error("Error toggling favorite: ", error);
-      Alert.alert("Error", "Failed to update favorites.");
+      console.error("Lỗi chuyển đổi mục yêu thích: ", error);
+      Alert.alert("Lỗi", "Không cập nhật được mục yêu thích.");
     }
   };
 
@@ -188,8 +188,8 @@ const SearchScreen = ({ navigation, route }) => {
       (ratingRange === "high" && meal.rating >= 3);
     const matchesDistanceRange =
       distanceRange === "all" ||
-      (distanceRange === "near" && meal.distance < 5) || // Adjust the distance thresholds as needed
-      (distanceRange === "far" && meal.distance >= 5);
+      (distanceRange === "near" && parseFloat(meal.distance) < 10) || // Chuyển đổi sang số và so sánh
+      (distanceRange === "far" && parseFloat(meal.distance) >= 10);
 
     return (
       matchesSearchQuery &&
@@ -334,10 +334,10 @@ const SearchScreen = ({ navigation, route }) => {
               <Text style={styles.filterOption}>All</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setDistanceRange("near")}>
-              <Text style={styles.filterOption}>Near (≤ 5 km)</Text>
+              <Text style={styles.filterOption}>Near (≤ 10 km)</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setDistanceRange("far")}>
-              <Text style={styles.filterOption}>Far (≥ 5 km)</Text>
+              <Text style={styles.filterOption}>Far (≥ 10 km)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

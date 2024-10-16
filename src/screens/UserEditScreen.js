@@ -139,7 +139,7 @@ const UserEditScreen = ({ navigation }) => {
           <View style={styles.avatarPlaceholder}>
             <Image
               source={{
-                uri: "https://i.pinimg.com/736x/03/eb/d6/03ebd625cc0b9d636256ecc44c0ea324.jpg",
+                uri: "https://via.placeholder.com/80",
               }}
               style={styles.avatar}
             />
@@ -219,7 +219,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-    paddingTop: 100,
   },
   input: {
     marginBottom: 20,
