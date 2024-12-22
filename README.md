@@ -17,7 +17,7 @@ Ensure you have the following installed:
 Git: [Download and install here](https://git-scm.com/)
 
 ### Clone the repository: </br>
-    git clone [https://github.com/yourusername/your-repo.git](https://github.com/L1-Loki/Lab1_B4.git) 
+    git clone https://github.com/L1-Loki/FoodX
     cd your-repo
 
 ### Install dependencies: </br>
