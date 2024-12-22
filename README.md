@@ -2,8 +2,6 @@
 
 A feature-rich mobile application built with **React Native** and **Expo**. This project is designed to provide [highlight key features] and is optimized for developers and users alike.  
 
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/your-repo.svg?style=social)](https://github.com/L1-Loki/Lab1_B4/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yourusername/your-repo.svg?style=social)](https://github.com/yourusername/your-repo/network/members)
 
 ## 📥 Clone and Get Started  
 
