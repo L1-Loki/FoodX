@@ -118,7 +118,7 @@ export default function SignUpScreen({ navigation }) {
         keyboardType="email-address"
       />
       <TextInput
-        label="Họ và tên"
+        label="Full Name"
         mode="outlined"
         style={styles.input}
         value={fullName}
@@ -162,7 +162,7 @@ export default function SignUpScreen({ navigation }) {
         style={styles.signUpButton}
         onPress={handleSignUp}
       >
-         <Text style={styles.submitButtonText}>Resgister</Text>
+        <Text style={styles.submitButtonText}>Resgister</Text>
       </TouchableOpacity>
       <View style={styles.footer}>
         <Text>You already have an account? </Text>

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, Alert, StyleSheet, TouchableOpacity } from "react-native";
-import { Button, TextInput } from "react-native-paper";
+import { TextInput } from "react-native-paper";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../../firebaseConfig"; // Import auth từ cấu hình Firebase của bạn
+import { auth, db } from "../../../firebaseConfig"; // Import auth và Firestore từ cấu hình Firebase của bạn
+import { collection, query, where, getDocs } from "firebase/firestore"; // Import Firestore methods
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -17,20 +18,27 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email);
-      Alert.alert(
-        "Success",
-        "Password reset email sent. Please check your inbox."
-      );
-      navigation.goBack(); // Quay lại màn hình đăng nhập sau khi gửi email
+      // Truy vấn Firestore để kiểm tra email
+      const q = query(collection(db, "users"), where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        // Nếu không tìm thấy email trong Firestore
+        setError("No account found with this email.");
+      } else {
+        // Nếu email tồn tại, gửi email đặt lại mật khẩu
+        await sendPasswordResetEmail(auth, email);
+        Alert.alert(
+          "Success",
+          "Password reset email sent. Please check your inbox."
+        );
+        navigation.goBack(); // Quay lại màn hình đăng nhập sau khi gửi email
+      }
     } catch (err) {
       console.error("Lỗi gửi email đặt lại mật khẩu:", err.code);
       switch (err.code) {
         case "auth/invalid-email":
           setError("Invalid email format. Please check your email.");
-          break;
-        case "auth/user-not-found":
-          setError("No account found with this email.");
           break;
         default:
           setError("Failed to send password reset email. Please try again.");

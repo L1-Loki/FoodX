@@ -2,8 +2,8 @@
 
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { HomeScreen } from "../screens/HomeScreen"; // Adjust the import based on your file structure
-import { db, auth } from "../../firebaseConfig"; // Ensure this is correct
+import { HomeScreen } from "../screens/HomeScreen";
+import { db, auth } from "../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 
 jest.mock("../../firebaseConfig", () => ({
@@ -54,7 +54,6 @@ describe("HomeScreen", () => {
     // Check if the search input is rendered
     expect(getByPlaceholderText("What are you craving?")).toBeTruthy();
 
-    // Wait for meals to be fetched and check if the titles are displayed
     await waitFor(() => {
       expect(getByText("Pizza")).toBeTruthy();
       expect(getByText("Burger")).toBeTruthy();
@@ -65,7 +64,7 @@ describe("HomeScreen", () => {
     const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
 
     await waitFor(() => {
-      const categoryButton = getByText("Pizza"); // Adjust to match your category title
+      const categoryButton = getByText("Pizza");
       fireEvent.press(categoryButton);
     });
 

@@ -1,7 +1,7 @@
 import React from "react";
-import { render, fireEvent, waitFor, act } from "@testing-library/react-native"; // Nhớ import act
-import SignInScreen from "../screens/screen_user/SignInScreen"; // Đường dẫn tới file SignInScreen của bạn
-import { signInWithEmailAndPassword } from "firebase/auth"; // Import đúng
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
+import SignInScreen from "../screens/screen_user/SignInScreen";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -44,7 +44,9 @@ describe("SignInScreen", () => {
   });
 
   it("handles successful sign in", async () => {
-    const { getByText, getByLabelText } = render(<SignInScreen navigation={mockNavigation} />);
+    const { getByText, getByLabelText } = render(
+      <SignInScreen navigation={mockNavigation} />
+    );
     const emailInput = getByLabelText("Email");
     const passwordInput = getByLabelText("Password");
     const loginButton = getByText("Login");
@@ -64,13 +66,14 @@ describe("SignInScreen", () => {
     });
 
     await waitFor(() => {
-      // Kiểm tra điều hướng tới màn hình Home
-      expect(mockNavigate).toHaveBeenCalledWith("Home"); // Đảm bảo rằng bạn thay "Home" bằng tên màn hình đúng
+      expect(mockNavigate).toHaveBeenCalledWith("Home");
     });
   });
 
   it("handles error on sign in", async () => {
-    const { getByText, getByLabelText } = render(<SignInScreen navigation={mockNavigation} />);
+    const { getByText, getByLabelText } = render(
+      <SignInScreen navigation={mockNavigation} />
+    );
     const emailInput = getByLabelText("Email");
     const passwordInput = getByLabelText("Password");
     const loginButton = getByText("Login");

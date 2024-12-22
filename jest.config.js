@@ -15,7 +15,7 @@ module.exports = {
       "jest-html-reporter",
       {
         pageTitle: "Test Report",
-        outputPath: "D:UngDungDaNenTang/LT/Lab1_b4/test-report.html",
+        outputPath: "<rootDir>/report/test-report.html",
         includeFailureMsg: true,
         includeSuiteFailure: true,
         customLanguage: "en",

@@ -3,7 +3,8 @@ import { Appearance } from "react-native";
 
 const ThemeContext = createContext();
 
-const theme = { // Đổi 'themes' thành 'theme' để nhất quán
+const theme = {
+  // Đổi 'themes' thành 'theme' để nhất quán
   light: {
     background: "#f5f5f5",
     itemBackground: "#ffffff",

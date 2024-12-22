@@ -17,7 +17,7 @@ export default function OTP({ route, navigation }) {
       // Xác thực mã OTP
       await confirm.confirm(otp);
       Alert.alert("Xác thực thành công", "Bạn đã đăng nhập thành công!");
-      navigation.navigate("Home"); // Chuyển tới màn hình chính sau khi xác thực thành công
+      navigation.navigate("Home");
     } catch (error) {
       Alert.alert("Lỗi xác thực", "Mã OTP không hợp lệ.");
     }
