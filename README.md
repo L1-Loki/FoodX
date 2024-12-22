@@ -1,6 +1,6 @@
-# 🌟 My React Native Expo App  
+# 🌟 FoodX - Project  
 
-A feature-rich mobile application built with **React Native** and **Expo**. This project is designed to provide [highlight key features] and is optimized for developers and users alike.  
+FoodX is a feature-rich mobile application built with **React Native** and **Expo**. This project serves as my final project for the semester and is designed to offer a food discovery . It's optimized for both developers and end users, featuring a user-friendly interface and powerful functionalities.  
 
 
 ## 📥 Clone and Get Started  
@@ -31,7 +31,12 @@ Git: [Download and install here](https://git-scm.com/)
 ### Scan the QR Code:
 Open the Expo Go app on your mobile device.
 Scan the QR code displayed in your terminal or browser to run the app.
+#
+### 📱 Screenshots of the App
 
+
+
+#
 ### 🤝 Contributing
 Contributions are always welcome!
 
