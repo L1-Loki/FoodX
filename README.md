@@ -70,4 +70,5 @@ If you found this project helpful, give it a ⭐ to show your support!
 For questions or feedback, feel free to reach out:
 
 Email: hungnguyen2003k@gmail.com </br>
-GitHub: L1-Loki
+GitHub: L1-Loki </br>
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/L1-Loki/FoodX)
